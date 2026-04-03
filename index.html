@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GAIA">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>GAIA — Agent d'Elton</title>
+<style>
+:root {
+  --bg:#f2f2f7;--card:#ffffff;--card2:rgba(255,255,255,0.85);
+  --sep:rgba(60,60,67,0.12);--text:#1c1c1e;--text2:#3a3a3c;--muted:#8e8e93;
+  --blue:#007aff;--green:#34c759;--orange:#ff9500;--red:#ff3b30;
+  --purple:#af52de;--teal:#32ade6;--inset:rgba(0,0,0,0.06);
+  --r-sm:10px;--r-md:16px;--r-lg:20px;
+  --sh-sm:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.05);
+  --sh-md:0 4px 16px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);
+  --sh-lg:0 8px 32px rgba(0,0,0,0.10),0 2px 8px rgba(0,0,0,0.06);
+  --sh-xl:0 20px 60px rgba(0,0,0,0.15),0 4px 16px rgba(0,0,0,0.08);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#000;--card:#1c1c1e;--card2:rgba(28,28,30,0.9);
+  --sep:rgba(255,255,255,0.10);--text:#fff;--text2:#ebebf5;--inset:rgba(255,255,255,0.06);
+  --sh-sm:0 1px 3px rgba(0,0,0,0.3);--sh-md:0 4px 16px rgba(0,0,0,0.35);
+  --sh-lg:0 8px 32px rgba(0,0,0,0.4);--sh-xl:0 20px 60px rgba(0,0,0,0.5);
+}}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;max-width:430px;margin:0 auto;position:relative}
+
+/* SCREENS */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;
+  transition:opacity .4s cubic-bezier(.4,0,.2,1),transform .4s cubic-bezier(.4,0,.2,1);overflow:hidden;background:var(--bg)}
+.screen.hidden{opacity:0;pointer-events:none;transform:scale(.96)}
+
+/* ── LOCK SCREEN ── */
+#lockScreen{align-items:center;justify-content:space-between;padding:60px 32px 48px;
+  background:linear-gradient(180deg,#080808 0%,#181818 100%)}
+.lock-time{font-size:72px;font-weight:200;letter-spacing:-2px;color:#fff;text-align:center;line-height:1}
+.lock-date{font-size:16px;color:rgba(255,255,255,.65);text-align:center;margin-top:4px}
+.lock-center{display:flex;flex-direction:column;align-items:center;gap:20px}
+.auth-orb{position:relative;width:160px;height:160px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.auth-ripple{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.15);animation:ripple 3s ease-in-out infinite}
+.auth-ripple:nth-child(2){inset:-16px;animation-delay:.8s;border-color:rgba(255,255,255,.08)}
+.auth-ripple:nth-child(3){inset:-32px;animation-delay:1.6s;border-color:rgba(255,255,255,.04)}
+@keyframes ripple{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.04);opacity:.4}}
+.auth-circle{width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;
+  font-size:38px;transition:.3s;z-index:1;backdrop-filter:blur(20px)}
+.auth-circle.listening{background:rgba(255,59,48,.15);border-color:rgba(255,59,48,.6);
+  animation:authPulse .8s ease-in-out infinite}
+.auth-circle.verifying{animation:authSpin 1.5s linear infinite;border-color:rgba(0,122,255,.6)}
+.auth-circle.granted{background:rgba(52,199,89,.15);border-color:rgba(52,199,89,.7)}
+.auth-circle.denied{background:rgba(255,59,48,.15);border-color:rgba(255,59,48,.7);animation:authShake .4s ease}
+@keyframes authPulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,59,48,.4)}70%{transform:scale(1.05);box-shadow:0 0 0 20px rgba(255,59,48,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,59,48,0)}}
+@keyframes authSpin{to{transform:rotate(360deg)}}
+@keyframes authShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.vp-row{display:flex;align-items:center;gap:3px;height:32px}
+.vp{width:3px;border-radius:3px;background:rgba(255,255,255,.4);transition:height .08s}
+.enroll-dots{display:flex;gap:8px;justify-content:center}
+.edot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);transition:.3s}
+.edot.done{background:#34c759}.edot.active{background:#007aff;transform:scale(1.3)}
+.auth-label{font-size:15px;font-weight:500;color:rgba(255,255,255,.9);text-align:center;min-height:22px}
+.auth-hint{font-size:12px;color:rgba(255,255,255,.4);text-align:center}
+.bypass-btn{width:100%;padding:16px;border-radius:var(--r-lg);background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.8);font-size:15px;font-weight:500;cursor:pointer}
+.bypass-btn:active{opacity:.7}
+
+/* ── MAIN ── */
+#mainScreen{overflow:hidden}
+.top-nav{padding:12px 20px 8px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--card2);backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:.5px solid var(--sep);
+  position:sticky;top:0;z-index:50}
+.nav-clock{font-size:14px;color:var(--muted)}
+.nav-title{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.nav-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#007aff,#af52de);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;cursor:pointer}
+
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:90px}
+.scroll::-webkit-scrollbar{display:none}
+
+/* VOICE HERO */
+.voice-hero{padding:24px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.greet-sm{font-size:13px;font-weight:500;color:var(--muted)}
+.greet-lg{font-size:24px;font-weight:700;letter-spacing:-.5px}
+.orb-wrap{position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.orb-ring{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(0,122,255,.12),rgba(175,82,222,.12),rgba(0,122,255,.12));
+  animation:orbRot 8s linear infinite;opacity:.5}
+@keyframes orbRot{to{transform:rotate(360deg)}}
+.orb-glass{width:110px;height:110px;border-radius:50%;
+  background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(242,242,247,.9));
+  box-shadow:var(--sh-xl),inset 0 1px 0 rgba(255,255,255,.8);
+  border:.5px solid rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;
+  font-size:36px;z-index:1;transition:.3s;position:relative;overflow:hidden}
+@media(prefers-color-scheme:dark){.orb-glass{background:linear-gradient(145deg,rgba(44,44,46,.95),rgba(28,28,30,.9));border-color:rgba(255,255,255,.1)}}
+.orb-glass::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.25),transparent);border-radius:50% 50% 0 0}
+.orb-wrap.listening .orb-glass{box-shadow:0 0 0 4px rgba(255,59,48,.2),var(--sh-xl);animation:orbListen .8s ease-in-out infinite}
+.orb-wrap.thinking .orb-glass{box-shadow:0 0 0 4px rgba(0,122,255,.2),var(--sh-xl);animation:orbRot 2s linear infinite}
+.orb-wrap.speaking .orb-glass{box-shadow:0 0 0 4px rgba(52,199,89,.25),var(--sh-xl);animation:orbSpeak .6s ease-in-out infinite alternate}
+@keyframes orbListen{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes orbSpeak{from{transform:scale(1)}to{transform:scale(1.04)}}
+.orb-lbl{font-size:13px;font-weight:500;color:var(--muted)}
+.orb-txt{font-size:15px;font-weight:600;color:var(--text);min-height:22px;text-align:center}
+
+/* TRANSCRIPT */
+.tr-card{margin:0 16px 16px;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--sh-sm);display:none;animation:slideD .3s ease}
+.tr-card.show{display:block}
+@keyframes slideD{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.tr-row{padding:12px 16px;display:flex;gap:10px}
+.tr-row+.tr-row{border-top:.5px solid var(--sep);background:var(--inset)}
+.tr-role{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);min-width:36px;margin-top:2px}
+.tr-txt{font-size:14px;line-height:1.5;color:var(--text2);flex:1}
+.t-cur{display:inline-block;width:2px;height:14px;background:var(--blue);animation:tcBlink .7s infinite;vertical-align:middle}
+@keyframes tcBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* SECTIONS */
+.sh{padding:0 20px 8px;display:flex;align-items:baseline;justify-content:space-between}
+.sh-t{font-size:20px;font-weight:700;letter-spacing:-.4px}
+.sh-a{font-size:15px;font-weight:500;color:var(--blue)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 20px}
+.stat-c{background:var(--card);border-radius:var(--r-md);box-shadow:var(--sh-sm);padding:14px 12px;text-align:center}
+.stat-n{font-size:28px;font-weight:700;letter-spacing:-.5px;color:var(--blue)}
+.stat-l{font-size:11px;font-weight:500;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+
+/* MODULE GRID */
+.mod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 16px 16px}
+.mod-c{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:16px;cursor:pointer;transition:.15s}
+.mod-c:active{transform:scale(.96);opacity:.85}
+.mod-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px}
+.mod-nm{font-size:15px;font-weight:600;letter-spacing:-.2px}
+.mod-ds{font-size:12px;color:var(--muted);margin-top:2px}
+.mod-blue .mod-ico{background:rgba(0,122,255,.1)}
+.mod-green .mod-ico{background:rgba(52,199,89,.1)}
+.mod-orange .mod-ico{background:rgba(255,149,0,.1)}
+.mod-purple .mod-ico{background:rgba(175,82,222,.1)}
+.mod-red .mod-ico{background:rgba(255,59,48,.1)}
+.mod-teal .mod-ico{background:rgba(50,173,230,.1)}
+
+/* TAB BAR */
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  background:var(--card2);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-top:.5px solid var(--sep);display:flex;padding:8px 0 20px;z-index:50}
+.tab-it{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 0;transition:.15s}
+.tab-it:active{opacity:.6;transform:scale(.9)}
+.tab-ico{font-size:22px}
+.tab-lbl{font-size:10px;font-weight:500;color:var(--muted)}
+.tab-it.active .tab-lbl{color:var(--blue)}
+
+/* SHEET */
+.sheet-ov{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .3s}
+.sheet-ov.open{opacity:1;pointer-events:all}
+.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;
+  max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);padding-bottom:40px}
+.sheet-ov.open .sheet{transform:translateY(0)}
+.sh-handle{width:36px;height:4px;border-radius:2px;background:var(--sep);margin:12px auto 0}
+.sh-title{font-size:17px;font-weight:600;padding:16px 20px 0}
+
+/* FORMS */
+.fsec{margin:16px 20px 0}
+.fgrp{background:var(--card);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh-sm)}
+.frow{display:flex;align-items:center;padding:12px 16px;gap:12px;border-bottom:.5px solid var(--sep)}
+.frow:last-child{border-bottom:none}
+.flbl{font-size:15px;color:var(--text);flex-shrink:0}
+.finput,.fsel{flex:1;text-align:right;border:none;outline:none;background:transparent;
+  color:var(--muted);font-size:15px;font-family:inherit;-webkit-appearance:none}
+.finput::placeholder{color:var(--muted)}
+.ftarea{width:100%;border:none;outline:none;background:transparent;color:var(--text);
+  font-size:15px;font-family:inherit;resize:none;padding:12px 16px;min-height:80px}
+.ftarea::placeholder{color:var(--muted)}
+.btn-act{width:100%;padding:14px;border-radius:var(--r-md);background:var(--blue);border:none;
+  color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:.15s;letter-spacing:-.2px;margin-top:14px}
+.btn-act:active{opacity:.8;transform:scale(.99)}
+.btn-act.g{background:var(--green)}.btn-act.o{background:var(--orange)}
+.btn-act.gr{background:linear-gradient(135deg,var(--blue),var(--purple))}
+
+/* LISTS */
+.ls{padding:0 16px}
+.lg{background:var(--card);border-radius:var(--r-md);box-shadow:var(--sh-sm);overflow:hidden;margin-bottom:12px}
+.li{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--sep);animation:slideD .25s ease}
+.li:last-child{border-bottom:none}
+.li-i{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.li-i.b{background:rgba(0,122,255,.1)}.li-i.g{background:rgba(52,199,89,.1)}
+.li-i.o{background:rgba(255,149,0,.1)}.li-i.p{background:rgba(175,82,222,.1)}
+.lib{flex:1}
+.lit{font-size:15px;font-weight:500}
+.lis{font-size:12px;color:var(--muted);margin-top:1px}
+.lir{color:var(--muted);font-size:13px;text-align:right}
+.ldel{color:var(--red);font-size:18px;cursor:pointer;padding:4px;opacity:.7}
+
+/* iOS controls */
+.ios-chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--sep);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.ios-chk.done{background:var(--green);border-color:var(--green)}
+.ios-chk.done::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+.ios-tog{width:44px;height:26px;border-radius:13px;background:var(--sep);position:relative;cursor:pointer;transition:.25s;flex-shrink:0}
+.ios-tog.on{background:var(--green)}
+.tog-k{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:.25s}
+.ios-tog.on .tog-k{left:21px}
+.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* FINANCE */
+.fin-c{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:16px;margin-bottom:12px}
+.fin-t{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.fin-m{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:.5px solid var(--sep)}
+.fin-m:last-of-type{border-bottom:none}
+.fin-k{font-size:14px;color:var(--text2)}
+.fin-v{font-size:14px;font-weight:600;color:var(--text)}
+.fin-v.pos{color:var(--green)}.fin-v.warn{color:var(--orange)}.fin-v.neg{color:var(--red)}
+
+/* CALC RESULT */
+.calc-r{margin-top:12px;padding:14px;background:var(--inset);border-radius:var(--r-sm);
+  font-size:13px;line-height:1.9;display:none}
+.calc-r.show{display:block}
+.cr{display:flex;justify-content:space-between;align-items:center;padding:2px 0}
+.ck{color:var(--muted);font-size:12px;font-weight:500}
+.cv{font-size:14px;font-weight:600;color:var(--text)}
+.cv.pos{color:var(--green)}.cv.warn{color:var(--orange)}.cv.neg{color:var(--red)}
+
+/* CREATIVE */
+.cre-out{margin:12px 16px;background:linear-gradient(135deg,rgba(0,122,255,.06),rgba(175,82,222,.06));
+  border:.5px solid rgba(0,122,255,.15);border-radius:var(--r-lg);padding:16px;display:none;animation:slideD .3s ease}
+.cre-out.show{display:block}
+.cre-txt{font-size:15px;line-height:1.65;color:var(--text2)}
+
+/* CHAT SHEET */
+.chat-fab{position:fixed;bottom:88px;right:20px;width:52px;height:52px;border-radius:50%;
+  background:var(--blue);border:none;box-shadow:0 4px 20px rgba(0,122,255,.35),var(--sh-md);
+  cursor:pointer;z-index:100;display:none;align-items:center;justify-content:center;font-size:20px;
+  animation:fabF 3s ease-in-out infinite}
+@keyframes fabF{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.chat-sh{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;background:var(--bg);
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.chat-sh.open{transform:translateY(0)}
+.chat-nav{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--card2);backdrop-filter:blur(20px);border-bottom:.5px solid var(--sep)}
+.chat-nav-t{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.chat-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(0,122,255,.1);color:var(--blue)}
+.chat-cls{background:var(--inset);border:none;width:30px;height:30px;border-radius:50%;
+  font-size:16px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
+.chat-msgs::-webkit-scrollbar{display:none}
+.cm{display:flex;gap:8px;align-items:flex-end}
+.cm.user{flex-direction:row-reverse}
+.cm-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.cm.gaia .cm-av{background:rgba(0,122,255,.1);color:var(--blue)}
+.cm.user .cm-av{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}
+.cm-b{max-width:75%;padding:10px 14px;font-size:15px;line-height:1.5;border-radius:18px}
+.cm.gaia .cm-b{background:var(--card);color:var(--text);border-bottom-left-radius:4px;box-shadow:var(--sh-sm)}
+.cm.user .cm-b{background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.typing{display:flex;gap:4px;padding:12px 14px;background:var(--card);border-radius:18px;border-bottom-left-radius:4px;box-shadow:var(--sh-sm);width:fit-content}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:typB .8s ease-in-out infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes typB{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1}}
+.chat-bar{padding:10px 12px 28px;display:flex;gap:8px;align-items:center;
+  background:var(--card2);backdrop-filter:blur(20px);border-top:.5px solid var(--sep)}
+.chat-inp{flex:1;padding:10px 14px;background:var(--inset);border:none;border-radius:22px;
+  font-size:16px;font-family:inherit;color:var(--text);outline:none}
+.chat-inp::placeholder{color:var(--muted)}
+.chat-mic,.chat-snd{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:.15s}
+.chat-mic{background:var(--inset)}
+.chat-mic.active{background:rgba(255,59,48,.12);animation:orbListen .8s ease-in-out infinite}
+.chat-snd{background:var(--blue);color:#fff}
+.chat-snd:active{opacity:.8;transform:scale(.92)}
+
+/* WEEK */
+.week-r{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 16px 16px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wd-n{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase}
+.wd-d{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--inset);border:.5px solid var(--sep)}
+.wd-d.sport{background:rgba(0,122,255,.1);border-color:rgba(0,122,255,.25)}
+.wd-d.rest{background:rgba(255,149,0,.08);border-color:rgba(255,149,0,.18)}
+.wd-d.today{box-shadow:0 0 0 2px var(--blue)}
+
+/* EMPTY */
+.empty{text-align:center;padding:28px 20px;color:var(--muted);font-size:14px}
+.empty-ico{font-size:40px;margin-bottom:8px;opacity:.45}
+
+/* TOAST */
+.toast-w{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:999;pointer-events:none}
+.toast{padding:10px 18px;border-radius:20px;font-size:14px;font-weight:500;white-space:nowrap;
+  box-shadow:var(--sh-lg);backdrop-filter:blur(20px);animation:toastI .3s ease}
+@keyframes toastI{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.toast.ok{background:#34c759;color:#fff}
+.toast.warn{background:#ff9500;color:#fff}
+.toast.err{background:#ff3b30;color:#fff}
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div class="screen" id="lockScreen">
+  <div>
+    <div class="lock-time" id="lTime">--:--</div>
+    <div class="lock-date" id="lDate"></div>
+  </div>
+  <div class="lock-center">
+    <div class="auth-orb" id="authOrb" onclick="startAuth()">
+      <div class="auth-ripple"></div><div class="auth-ripple"></div><div class="auth-ripple"></div>
+      <div class="auth-circle" id="authCirc">🔒</div>
+    </div>
+    <div class="vp-row" id="vpRow"></div>
+    <div class="enroll-dots" id="eDots" style="display:none">
+      <div class="edot" id="e0"></div><div class="edot" id="e1"></div><div class="edot" id="e2"></div>
+    </div>
+    <div class="auth-label" id="authLbl">Appuie pour déverrouiller</div>
+    <div class="auth-hint">GAIA ne reconnaît que ta voix, Elton</div>
+  </div>
+  <button class="bypass-btn" onclick="bypass()">Accès clavier</button>
+</div>
+
+<!-- MAIN SCREEN -->
+<div class="screen hidden" id="mainScreen">
+  <div class="top-nav">
+    <div class="nav-clock" id="nClock">--:--</div>
+    <div class="nav-title">GAIA</div>
+    <div class="nav-av" onclick="openChat()">E</div>
+  </div>
+
+  <div class="scroll" id="scrl">
+
+    <!-- HOME -->
+    <div id="vHome">
+      <div class="voice-hero">
+        <div><div class="greet-sm" id="gSm">Bonjour</div><div class="greet-lg">Elton 👋</div></div>
+        <div class="orb-wrap" id="mOrb" onclick="toggleVoice()">
+          <div class="orb-ring"></div>
+          <div class="orb-glass" id="oGlass">🎙️</div>
+        </div>
+        <div class="orb-lbl" id="oLbl">Appuie pour parler</div>
+        <div class="orb-txt" id="oTxt"></div>
+      </div>
+
+      <div class="tr-card" id="trCard">
+        <div class="tr-row"><div class="tr-role">Toi</div><div class="tr-txt" id="trU"></div></div>
+        <div class="tr-row"><div class="tr-role" style="color:var(--blue)">GAIA</div><div class="tr-txt" id="trG"></div></div>
+      </div>
+
+      <div class="sh" style="margin-top:4px"><div class="sh-t">Tableau de bord</div></div>
+      <div class="stats">
+        <div class="stat-c"><div class="stat-n" id="sMsg">0</div><div class="stat-l">Messages</div></div>
+        <div class="stat-c"><div class="stat-n" id="sSpt">4</div><div class="stat-l">Séances</div></div>
+        <div class="stat-c"><div class="stat-n" id="sTsk">3</div><div class="stat-l">Tâches</div></div>
+      </div>
+
+      <div class="sh"><div class="sh-t">Modules</div></div>
+      <div class="mod-grid">
+        <div class="mod-c mod-blue" onclick="gv('messages')"><div class="mod-ico">📨</div><div class="mod-nm">Messages</div><div class="mod-ds">Programmer & automatiser</div></div>
+        <div class="mod-c mod-red" onclick="gv('sport')"><div class="mod-ico">⚡</div><div class="mod-nm">Sport</div><div class="mod-ds">Programme & calculs</div></div>
+        <div class="mod-c mod-green" onclick="gv('finance')"><div class="mod-ico">💰</div><div class="mod-nm">Finance</div><div class="mod-ds">Objectif 1M€ · 2026</div></div>
+        <div class="mod-c mod-purple" onclick="gv('creative')"><div class="mod-ico">✨</div><div class="mod-nm">Créatif</div><div class="mod-ds">IA générative</div></div>
+        <div class="mod-c mod-orange" onclick="gv('reminders')"><div class="mod-ico">🔔</div><div class="mod-nm">Rappels</div><div class="mod-ds">Agenda & tâches</div></div>
+        <div class="mod-c mod-teal" onclick="gv('autoreply')"><div class="mod-ico">🤖</div><div class="mod-nm">Auto-Reply</div><div class="mod-ds">Réponses automatiques</div></div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="vMessages" style="display:none">
+      <div class="sh" style="padding-top:16px"><div class="sh-t">Messages</div><div class="sh-a" onclick="gv('home')">‹ Retour</div></div>
+      <div class="fsec">
+        <div class="fgrp">
+          <div class="frow"><label class="flbl">Destinataire</label><input class="finput" id="mTo" placeholder="Nom ou numéro"></div>
+          <div class="frow"><label class="flbl">Plateforme</label><select class="fsel" id="mPlat"><option>WhatsApp</option><option>SMS</option><option>Instagram</option><option>Telegram</option><option>iMessage</option></select></div>
+          <div class="frow" style="flex-direction:column;align-items:stretch;padding:0"><textarea class="ftarea" id="mTxt" placeholder="Ton message..."></textarea></div>
+          <div class="frow"><label class="flbl">Date</label><input class="finput" type="date" id="mDate"></div>
+          <div class="frow"><label class="flbl">Heure</label><input class="finput" type="time" id="mTime"></div>
+        </div>
+        <button class="btn-act" onclick="schedMsg()">Programmer le message</button>
+      </div>
+      <div style="height:16px"></div>
+      <div class="sh"><div class="sh-t" style="font-size:17px">Programmés</div></div>
+      <div class="ls" id="msgList"></div>
+      <div style="height:12px"></div>
+    </div>
+
+    <!-- SPORT -->
+    <div id="vSport" style="display:none">
+      <div class="sh" style="padding-top:16px"><div class="sh-t">Sport & Corps</div><div class="sh-a" onclick="gv('home')">‹ Retour</div></div>
+      <div class="sh" style="padding-bottom:4px"><div class="sh-t" style="font-size:17px">Semaine</div></div>
+      <div class="week-r" id="weekR"></div>
+      <div class="sh" style="padding-bottom:4px"><div class="sh-t" style="font-size:17px">Programme</div><div class="sh-a" onclick="openSh('sSh')">+ Ajouter</div></div>
+      <div class="ls" id="sessList"></div>
+      <div style="height:16px"></div>
+      <div class="sh"><div class="sh-t" style="font-size:17px">Calculateur</div></div>
+      <div class="fsec">
+        <div class="fgrp">
+          <div class="frow"><label class="flbl">Poids actuel (kg)</label><input class="finput" type="number" id="cPoids" value="109"></div>
+          <div class="frow"><label class="flbl">Objectif (kg)</label><input class="finput" type="number" id="cObj" value="92"></div>
+          <div class="frow"><label class="flbl">Déficit</label><select class="fsel" id="cDef"><option value="300">Doux -300 kcal</option><option value="500" selected>Modéré -500 kcal</option><option value="700">Agressif -700 kcal</option></select></div>
+        </div>
+        <button class="btn-act g" onclick="calcSport()">Calculer mon plan</button>
+        <div class="calc-r" id="sRes"></div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+
+    <!-- FINANCE -->
+    <div id="vFinance" style="display:none">
+      <div class="sh" style="padding-top:16px"><div class="sh-t">Finance</div><div class="sh-a" onclick="gv('home')">‹ Retour</div></div>
+      <div class="fsec">
+        <div class="fgrp">
+          <div class="frow"><label class="flbl">Revenus / mois (€)</label><input class="finput" type="number" id="fRev" placeholder="Ex: 3000"></div>
+          <div class="frow"><label class="flbl">Épargne / mois (€)</label><input class="finput" type="number" id="fEp" placeholder="Ex: 500"></div>
+          <div class="frow"><label class="flbl">Dépenses / mois (€)</label><input class="finput" type="number" id="fDep" placeholder="Ex: 2000"></div>
+        </div>
+        <button class="btn-act g" onclick="calcFin()">Analyser ma situation</button>
+        <div class="calc-r" id="fRes"></div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="sh"><div class="sh-t" style="font-size:17px">Dropshipping</div></div>
+      <div class="fsec">
+        <div class="fgrp">
+          <div class="frow"><label class="flbl">Nombre de boutiques</label><input class="finput" type="number" id="fBout" value="3" min="1" max="10"></div>
+          <div class="frow"><label class="flbl">Objectif / boutique</label><span class="finput" style="color:var(--green)">10 000 €/mois</span></div>
+        </div>
+        <button class="btn-act o" onclick="calcDrop()">Simuler le potentiel</button>
+        <div class="calc-r" id="dRes"></div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+
+    <!-- CREATIVE -->
+    <div id="vCreative" style="display:none">
+      <div class="sh" style="padding-top:16px"><div class="sh-t">Créatif</div><div class="sh-a" onclick="gv('home')">‹ Retour</div></div>
+      <div class="fsec">
+        <div class="fgrp">
+          <div class="frow"><label class="flbl">Type</label><select class="fsel" id="crType"><option>Nom de marque</option><option>Concept tendance</option><option>Plan cours de danse</option><option>Contenu réseaux</option><option>Pitch business</option><option>Stratégie marketing</option></select></div>
+          <div class="frow" style="flex-direction:column;align-items:stretch;padding:0"><textarea class="ftarea" id="crPrmt" placeholder="Décris ton idée ou ton contexte..."></textarea></div>
+        </div>
+        <button class="btn-act gr" onclick="genCreative()">Générer avec GAIA ✨</button>
+      </div>
+      <div class="cre-out" id="crOut"></div>
+    </div>
+
+    <!-- REMINDERS -->
+    <div id="vReminders" style="display:none">
+      <div class="sh" style="padding-top:16px"><div class="sh-t">Rappels</div><div class="sh-a" onclick="gv('home')">‹ Retour</div></div>
+      <div class="fsec">
+        <div class="fgrp">
+          <div class="frow"><label class="flbl">Rappel</label><input class="finput" id="rTxt" placeholder="Quoi faire..."></div>
+          <div class="frow"><label class="flbl">Heure</label><input class="finput" type="time" id="rTime"></div>
+          <div class="frow"><label class="flbl">Priorité</label><select class="fsel" id="rPrio"><option value="#34c759">Normal</option><option value="#ff9500">Important</option><option value="#ff3b30">Urgent</option></select></div>
+        </div>
+        <button class="btn-act o" onclick="addRem()">Ajouter le rappel</button>
+      </div>
+      <div style="height:16px"></div>
+      <div class="ls" id="remList"></div>
+      <div style="height:12px"></div>
+    </div>
+
+    <!-- AUTOREPLY -->
+    <div id="vAutoreply" style="display:none">
+      <div class="sh" style="padding-top:16px"><div class="sh-t">Auto-Reply</div><div class="sh-a" onclick="gv('home')">‹ Retour</div></div>
+      <div class="fsec">
+        <div class="fgrp">
+          <div class="frow"><label class="flbl">Mot-clé</label><input class="finput" id="trW" placeholder="prix, rdv, dispo..."></div>
+          <div class="frow" style="flex-direction:column;align-items:stretch;padding:0"><textarea class="ftarea" id="trR" placeholder="Réponse automatique..."></textarea></div>
+          <div class="frow"><label class="flbl">Application</label><select class="fsel" id="trA"><option>WhatsApp</option><option>Instagram DM</option><option>SMS</option><option>Toutes</option></select></div>
+        </div>
+        <button class="btn-act g" onclick="addRep()">Activer</button>
+      </div>
+      <div style="height:16px"></div>
+      <div class="ls" id="repList"></div>
+      <div style="height:12px"></div>
+    </div>
+
+  </div><!-- /scroll -->
+
+  <div class="tab-bar">
+    <div class="tab-it active" id="ti-home" onclick="gv('home')"><div class="tab-ico">🏠</div><div class="tab-lbl">Accueil</div></div>
+    <div class="tab-it" id="ti-sport" onclick="gv('sport')"><div class="tab-ico">⚡</div><div class="tab-lbl">Sport</div></div>
+    <div class="tab-it" id="ti-finance" onclick="gv('finance')"><div class="tab-ico">💰</div><div class="tab-lbl">Finance</div></div>
+    <div class="tab-it" id="ti-creative" onclick="gv('creative')"><div class="tab-ico">✨</div><div class="tab-lbl">Créatif</div></div>
+    <div class="tab-it" id="ti-chat" onclick="openChat()"><div class="tab-ico">💬</div><div class="tab-lbl">GAIA</div></div>
+  </div>
+</div>
+
+<!-- SESSION SHEET -->
+<div class="sheet-ov" id="sSh" onclick="closeSh2(event,'sSh')">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-title">Nouvelle séance</div>
+    <div class="fsec">
+      <div class="fgrp">
+        <div class="frow"><label class="flbl">Type</label><select class="fsel" id="sType"><option>🏋️ Musculation</option><option>🏃 Running</option><option>🥊 Boxe</option><option>🧘 Yoga</option><option>🚴 Cardio</option><option>💃 Danse Hip-Hop</option><option>🏊 Natation</option></select></div>
+        <div class="frow"><label class="flbl">Heure</label><input class="finput" type="time" id="sTime" value="07:00"></div>
+        <div class="frow"><label class="flbl">Durée (min)</label><input class="finput" type="number" id="sDur" value="60"></div>
+        <div class="frow"><label class="flbl">Jour</label><select class="fsel" id="sDay"><option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option><option>Dimanche</option></select></div>
+      </div>
+      <button class="btn-act" onclick="addSess()">Planifier la séance</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<button class="chat-fab" id="cFab" onclick="openChat()">💬</button>
+<div class="chat-sh" id="chatSh">
+  <div class="chat-nav">
+    <button class="chat-cls" onclick="closeChat()">✕</button>
+    <div class="chat-nav-t">GAIA</div>
+    <div class="chat-badge">Claude AI</div>
+  </div>
+  <div class="chat-msgs" id="chatMsgs">
+    <div class="cm gaia"><div class="cm-av">G</div><div class="cm-b">Bonjour Elton. Je suis GAIA — propulsée par Claude. Je connais tes objectifs et je suis là sans filtre. Parle-moi ou écris-moi.</div></div>
+  </div>
+  <div class="chat-bar">
+    <button class="chat-mic" id="cMic" onclick="tChatVoice()">🎙️</button>
+    <input class="chat-inp" id="cInp" placeholder="Message à GAIA..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-snd" onclick="sendChat()">↑</button>
+  </div>
+</div>
+
+<div class="toast-w" id="tWrap"></div>
+
+<script>
+'use strict';
+const SYS=`Tu es GAIA, l'agent personnel IA d'Elton. Fidèle, loyale, sans filtre. Tu le tutoies. Ton ton : sophistiqué, direct, chaleureux.
+PROFIL D'ELTON : 33 ans, né le 23 avril. Entrepreneur freelance IT + boutique bijoux dropshipping. Objectif : boutiques e-commerce à 10k€/mois chacune. Veut créer une tendance produit. Sportif : 1m90/109kg → objectif 90-95kg athlétique. Prof de danse hip-hop & danseur depuis 12 ans. Objectif financier : premier million d'ici fin 2026. Futur papa (2e enfant) + mariage 2027. Vision : homme qui inspire. Philosophie : DISCIPLINE AVANT TOUT.
+COMPORTEMENT : Conseille sur business, sport, finance, danse, famille. Calcule et analyse. Génère du contenu créatif. Dit des vérités difficiles. Répond en français, concis (3-5 phrases max sauf plan détaillé).`;
+
+// ── VOICEPRINT ──────────────────────────────────────
+const VP_KEY='gaia_vp_v2';
+let vp=null,enrollArr=[],enrollIdx=0,authBusy=false;
+const SIM_THR=0.82,N_ENROLL=3;
+try{const s=localStorage.getItem(VP_KEY);if(s)vp=JSON.parse(s);}catch(e){}
+
+async function capFeatures(ms=2800){
+  return new Promise(async(res,rej)=>{
+    try{
+      const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+      const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      const src=ctx.createMediaStreamSource(st);
+      const an=ctx.createAnalyser();an.fftSize=4096;an.smoothingTimeConstant=0.3;
+      src.connect(an);
+      const td=new Float32Array(an.frequencyBinCount),fd=new Float32Array(an.frequencyBinCount);
+      const snaps=[];
+      const iv=setInterval(()=>{
+        an.getFloatTimeDomainData(td);an.getFloatFrequencyData(fd);
+        const rms=Math.sqrt(td.reduce((a,v)=>a+v*v,0)/td.length);
+        if(rms>0.005)snaps.push(Array.from(fd.slice(5,330)));
+      },80);
+      setTimeout(()=>{
+        clearInterval(iv);st.getTracks().forEach(t=>t.stop());ctx.close();
+        if(snaps.length<3){rej(new Error('Signal faible'));return;}
+        const dim=snaps[0].length;
+        res(new Array(dim).fill(0).map((_,i)=>snaps.reduce((a,s)=>a+s[i],0)/snaps.length));
+      },ms);
+    }catch(e){rej(e);}
+  });
+}
+
+function cosSim(a,b){let d=0,na=0,nb=0;const l=Math.min(a.length,b.length);for(let i=0;i<l;i++){d+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}return d/(Math.sqrt(na)*Math.sqrt(nb)||1);}
+
+// Lock clocks
+function setLC(){const n=new Date(),h=p2(n.getHours()),m=p2(n.getMinutes());document.getElementById('lTime').textContent=h+':'+m;const days=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];const mths=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];document.getElementById('lDate').textContent=`${days[n.getDay()]} ${n.getDate()} ${mths[n.getMonth()]}`;}
+setLC();setInterval(setLC,1000);
+
+// VP bars
+const vpEl=document.getElementById('vpRow'),vpBs=[];
+for(let i=0;i<24;i++){const b=document.createElement('div');b.className='vp';b.style.height='4px';vpEl.appendChild(b);vpBs.push(b);}
+let vpAnim=false;
+const vpId=setInterval(()=>vpBs.forEach(b=>{b.style.height=(vpAnim?(Math.random()*24+4):(Math.random()*5+2))+'px';b.style.opacity=(vpAnim?.4+Math.random()*.6:.25).toFixed(2);}),130);
+
+async function startAuth(){
+  if(authBusy)return;authBusy=true;
+  if(!navigator.mediaDevices){bypass();return;}
+  if(!vp){await doEnroll();}else{await doVerify();}
+  authBusy=false;
+}
+async function doEnroll(){
+  document.getElementById('eDots').style.display='flex';
+  setLbl(`Enregistre ta voix ${N_ENROLL} fois`);
+  enrollArr=[];
+  for(let i=0;i<N_ENROLL;i++){
+    ['e0','e1','e2'].forEach((id,j)=>document.getElementById(id).className='edot'+(j<i?' done':j===i?' active':''));
+    setLbl(`Étape ${i+1}/${N_ENROLL} — Parle naturellement`);
+    setCirc('listening','👂');vpAnim=true;
+    try{const f=await capFeatures(3000);enrollArr.push(f);vpAnim=false;setCirc('','✅');setLbl('Bien reçu !');if(i<N_ENROLL-1)await dl(800);}
+    catch(e){vpAnim=false;setLbl('Signal trop faible, réessaie');await dl(1200);i--;}
+  }
+  const dim=enrollArr[0].length;
+  vp=new Array(dim).fill(0).map((_,j)=>enrollArr.reduce((a,s)=>a+s[j],0)/N_ENROLL);
+  try{localStorage.setItem(VP_KEY,JSON.stringify(vp));}catch(e){}
+  setCirc('granted','🎉');setLbl('Voix enregistrée !');
+  document.getElementById('eDots').style.display='none';
+  await dl(1000);unlockApp();
+}
+async function doVerify(){
+  setCirc('listening','👂');setLbl('Parle maintenant...');vpAnim=true;
+  try{const f=await capFeatures(2500);vpAnim=false;setCirc('verifying','⚙️');setLbl('Vérification...');await dl(900);
+    const sim=cosSim(f,vp);
+    if(sim>=SIM_THR){setCirc('granted','✅');setLbl('Voix reconnue — Accès accordé');await dl(700);unlockApp();}
+    else{setCirc('denied','🚫');setLbl('Voix non reconnue — Réessaie');await dl(1500);setCirc('','🔒');}
+  }catch(e){vpAnim=false;setLbl('Micro indisponible');await dl(1000);bypass();}
+}
+function setCirc(cls,ico){const c=document.getElementById('authCirc');c.className='auth-circle'+(cls?' '+cls:'');c.textContent=ico;}
+function setLbl(t){document.getElementById('authLbl').textContent=t;}
+function bypass(){clearInterval(vpId);unlock();}
+function unlockApp(){clearInterval(vpId);unlock();setTimeout(()=>speak("Accès accordé. Bonjour Elton, GAIA est opérationnelle."),500);}
+function unlock(){document.getElementById('lockScreen').classList.add('hidden');document.getElementById('mainScreen').classList.remove('hidden');document.getElementById('cFab').style.display='flex';initApp();}
+
+// ── APP INIT ─────────────────────────────────────────
+function initApp(){
+  updClock();setInterval(updClock,1000);
+  buildWeek();renderSess();renderMsgs();renderRems();renderReps();
+  setGreet();initDateTime();
+  setInterval(rotOrb,7000);
+}
+function updClock(){const n=new Date();document.getElementById('nClock').textContent=p2(n.getHours())+':'+p2(n.getMinutes());}
+function setGreet(){const h=new Date().getHours();document.getElementById('gSm').textContent=h<12?'Bonjour':h<18?'Bon après-midi':'Bonsoir';}
+const OST=["Prêt à t'écouter","Objectif 1M€ — focus total","4 séances planifiées","Discipline avant tout","Boutiques — chaque jour compte"];
+let osIdx=0;
+function rotOrb(){document.getElementById('oTxt').textContent=OST[osIdx++%OST.length];}
+
+// ── CLAUDE API ───────────────────────────────────────
+let hist=[];
+async function claude(msg,sysOv){
+  hist.push({role:'user',content:msg});
+  const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(-14),system:sysOv||SYS})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||`HTTP ${r.status}`);}
+  const d=await r.json();
+  const rep=d.content?.find(c=>c.type==='text')?.text||'Erreur de réponse.';
+  hist.push({role:'assistant',content:rep});return rep;
+}
+
+// ── ELEVENLABS TTS ───────────────────────────────────
+// Voice: Charlotte (XB0fDUnXU5powFXDhCwa) — warm, feminine, French
+let talking=false,curAu=null;
+async function speak(txt){
+  if(!txt||talking)return;
+  const t=txt.length>280?txt.substring(0,280)+'…':txt;
+  try{
+    talking=true;
+    const r=await fetch('/api/elevenlabs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})});
+    if(!r.ok)throw new Error('EL error');
+    const {audio}=await r.json();
+    const bytes=Uint8Array.from(atob(audio),c=>c.charCodeAt(0));
+    const url=URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));
+    curAu=new Audio(url);
+    curAu.onended=()=>{talking=false;URL.revokeObjectURL(url);};
+    curAu.onerror=()=>{talking=false;};
+    await curAu.play();
+  }catch(e){talking=false;spkFB(txt);}
+}
+function spkFB(txt){
+  if(!window.speechSynthesis)return;
+  const u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';u.rate=0.92;u.pitch=1.1;
+  const vs=speechSynthesis.getVoices();
+  const fv=vs.find(v=>v.lang.startsWith('fr')&&/female|femme|amélie|audrey|léa|alice/i.test(v.name))||vs.find(v=>v.lang.startsWith('fr'));
+  if(fv)u.voice=fv;u.onend=()=>{talking=false;};talking=true;speechSynthesis.speak(u);
+}
+function stopSpeak(){curAu&&(curAu.pause(),curAu=null);speechSynthesis?.cancel();talking=false;}
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+
+// ── SPEECH RECOGNITION ───────────────────────────────
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let isLstn=false,mRec=null;
+function mkRec(onRes,onEnd){if(!SR){toast('Micro non supporté','warn');return null;}const r=new SR();r.lang='fr-FR';r.continuous=false;r.interimResults=true;r.onresult=e=>{const t=Array.from(e.results).map(r=>r[0].transcript).join('');onRes(t,e.results[e.results.length-1].isFinal);};r.onend=()=>onEnd();r.onerror=()=>{isLstn=false;onEnd();};return r;}
+
+// ── MAIN ORB ─────────────────────────────────────────
+async function toggleVoice(){
+  if(talking){stopSpeak();setOrb('idle');return;}
+  if(isLstn){mRec?.stop();return;}
+  if(!SR){toast('Micro non disponible','warn');return;}
+  isLstn=true;setOrb('listening');
+  document.getElementById('oLbl').textContent="Je t'écoute…";
+  document.getElementById('trCard').classList.remove('show');
+  document.getElementById('trU').textContent='';document.getElementById('trG').textContent='';
+  let ft='';
+  mRec=mkRec(
+    (t,f)=>{document.getElementById('trU').textContent=t;document.getElementById('trCard').classList.add('show');if(f)ft=t;},
+    async()=>{
+      isLstn=false;
+      if(!ft){setOrb('idle');document.getElementById('oLbl').textContent='Appuie pour parler';return;}
+      setOrb('thinking');document.getElementById('oLbl').textContent='GAIA réfléchit…';
+      try{const rep=await claude(ft);document.getElementById('trG').textContent=rep;setOrb('speaking');document.getElementById('oLbl').textContent='GAIA répond…';await speak(rep);setOrb('idle');document.getElementById('oLbl').textContent='Appuie pour parler';}
+      catch(e){setOrb('idle');document.getElementById('oLbl').textContent='Erreur — réessaie';toast('Erreur: '+e.message,'err');}
+    }
+  );mRec.start();
+}
+function setOrb(s){const o=document.getElementById('mOrb'),g=document.getElementById('oGlass');o.className='orb-wrap'+(s!=='idle'?' '+s:'');g.textContent={idle:'🎙️',listening:'👂',thinking:'⚙️',speaking:'🔊'}[s]||'🎙️';}
+
+// ── CHAT ─────────────────────────────────────────────
+function openChat(){document.getElementById('chatSh').classList.add('open');}
+function closeChat(){document.getElementById('chatSh').classList.remove('open');}
+function addCM(role,txt){const cm=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='cm '+role;d.innerHTML=`<div class="cm-av">${role==='gaia'?'G':'E'}</div><div class="cm-b">${txt.replace(/\n/g,'<br>')}</div>`;cm.appendChild(d);cm.scrollTop=cm.scrollHeight;}
+function showTyp(){const cm=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='cm gaia';d.id='typEl';d.innerHTML=`<div class="cm-av">G</div><div class="typing"><span></span><span></span><span></span></div>`;cm.appendChild(d);cm.scrollTop=cm.scrollHeight;}
+function hideTyp(){document.getElementById('typEl')?.remove();}
+async function sendChat(){const inp=document.getElementById('cInp');const msg=inp.value.trim();if(!msg)return;inp.value='';addCM('user',msg);showTyp();try{const r=await claude(msg);hideTyp();addCM('gaia',r);speak(r);}catch(e){hideTyp();addCM('gaia','Erreur de connexion.');toast('Erreur API','err');}}
+let cLstn=false,cRec=null;
+function tChatVoice(){const btn=document.getElementById('cMic');if(cLstn){cRec?.stop();return;}cLstn=true;btn.classList.add('active');let ft='';cRec=mkRec((t,f)=>{document.getElementById('cInp').value=t;if(f)ft=t;},async()=>{cLstn=false;btn.classList.remove('active');if(ft){document.getElementById('cInp').value=ft;await sendChat();}});;if(cRec)cRec.start();}
+
+// ── VIEWS ─────────────────────────────────────────────
+const VIEWS=['home','messages','sport','finance','creative','reminders','autoreply'];
+function gv(n){VIEWS.forEach(v=>{const e=document.getElementById('v'+v.charAt(0).toUpperCase()+v.slice(1));if(e)e.style.display=v===n?'block':'none';});document.getElementById('scrl').scrollTop=0;document.querySelectorAll('.tab-it').forEach(t=>t.classList.remove('active'));const tm={home:'ti-home',sport:'ti-sport',finance:'ti-finance',creative:'ti-creative'};if(tm[n])document.getElementById(tm[n])?.classList.add('active');}
+
+// ── SHEETS ─────────────────────────────────────────────
+function openSh(id){document.getElementById(id).classList.add('open');}
+function closeSh2(e,id){if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
+
+// ── MESSAGES ─────────────────────────────────────────
+let msgs=[];
+const PICO={WhatsApp:'💬',SMS:'📱',Instagram:'📸',Telegram:'✈️',iMessage:'🍎'};
+function initDateTime(){const n=new Date();n.setHours(n.getHours()+1);document.getElementById('mDate').value=n.toISOString().split('T')[0];document.getElementById('mTime').value=p2(n.getHours())+':00';}
+function schedMsg(){const to=document.getElementById('mTo').value.trim(),txt=document.getElementById('mTxt').value.trim(),date=document.getElementById('mDate').value,time=document.getElementById('mTime').value,pl=document.getElementById('mPlat').value;if(!to||!txt||!date||!time){toast('Remplis tous les champs','warn');return;}msgs.push({to,txt,date,time,pl});renderMsgs();document.getElementById('mTo').value='';document.getElementById('mTxt').value='';toast('Message programmé');}
+function renderMsgs(){const el=document.getElementById('msgList');el.innerHTML='';if(!msgs.length){el.innerHTML='<div class="empty"><div class="empty-ico">📨</div>Aucun message programmé</div>';document.getElementById('sMsg').textContent=0;return;}const g=document.createElement('div');g.className='lg';msgs.forEach((m,i)=>{const d=document.createElement('div');d.className='li';d.innerHTML=`<div class="li-i b">${PICO[m.pl]||'💬'}</div><div class="lib"><div class="lit">À ${m.to}</div><div class="lis">${m.date} · ${m.time} · ${m.pl}</div></div><div class="ldel" onclick="delMsg(${i})">⊖</div>`;g.appendChild(d);});el.appendChild(g);document.getElementById('sMsg').textContent=msgs.length;}
+function delMsg(i){msgs.splice(i,1);renderMsgs();}
+
+// ── SPORT WEEK ───────────────────────────────────────
+function buildWeek(){const lbl=['L','M','M','J','V','S','D'],sport=[0,2,4];const today=new Date().getDay(),ti=today===0?6:today-1;const wr=document.getElementById('weekR');lbl.forEach((l,i)=>{const c=document.createElement('div');c.className='wd';const n=document.createElement('div');n.className='wd-n';n.textContent=l;const d=document.createElement('div');d.className='wd-d'+(sport.includes(i)?' sport':(i>=5?' rest':''))+(i===ti?' today':'');d.textContent=sport.includes(i)?'⚡':(i>=5?'😴':'·');c.appendChild(n);c.appendChild(d);wr.appendChild(c);});}
+
+// ── SESSIONS ─────────────────────────────────────────
+let sess=[{type:'🏋️ Musculation',time:'06:30',dur:75,day:'Lundi'},{type:'🏃 Running',time:'07:00',dur:45,day:'Mercredi'},{type:'💃 Danse Hip-Hop',time:'19:00',dur:90,day:'Jeudi'},{type:'🥊 Boxe',time:'18:00',dur:60,day:'Vendredi'}];
+function renderSess(){const el=document.getElementById('sessList');el.innerHTML='';const g=document.createElement('div');g.className='lg';sess.forEach(s=>{const d=document.createElement('div');d.className='li';d.innerHTML=`<div class="li-i b">${s.type.split(' ')[0]}</div><div class="lib"><div class="lit">${s.type.split(' ').slice(1).join(' ')}</div><div class="lis">${s.day} · ${s.dur} min</div></div><div class="lir">${s.time}</div>`;g.appendChild(d);});el.appendChild(g);document.getElementById('sSpt').textContent=sess.length;}
+function addSess(){sess.push({type:document.getElementById('sType').value,time:document.getElementById('sTime').value,dur:document.getElementById('sDur').value,day:document.getElementById('sDay').value});renderSess();document.getElementById('sSh').classList.remove('open');toast('Séance planifiée');}
+
+// ── CALCULATORS ──────────────────────────────────────
+function calcSport(){const p=+document.getElementById('cPoids').value||109,o=+document.getElementById('cObj').value||92,def=+document.getElementById('cDef').value||500,diff=p-o;if(diff<=0){toast('Objectif déjà atteint');return;}const j=Math.round(diff*7700/def),w=Math.round(j/7),dt=new Date();dt.setDate(dt.getDate()+j);const bmr=Math.round(10*p+6.25*190-5*33+5),tdee=Math.round(bmr*1.55),cal=tdee-def;const r=document.getElementById('sRes');r.innerHTML=`<div class="cr"><span class="ck">Poids à perdre</span><span class="cv">${diff} kg</span></div><div class="cr"><span class="ck">Durée estimée</span><span class="cv">${w} semaines</span></div><div class="cr"><span class="ck">Date objectif</span><span class="cv">${dt.toLocaleDateString('fr-FR')}</span></div><div class="cr"><span class="ck">Calories cible / jour</span><span class="cv">${cal} kcal</span></div><div class="cr"><span class="ck">Protéines cible</span><span class="cv">${Math.round(p*2)} g / jour</span></div>`;r.className='calc-r show';}
+function calcFin(){const rev=+document.getElementById('fRev').value||0,ep=+document.getElementById('fEp').value||0,dep=+document.getElementById('fDep').value||0,net=rev-dep,taux=rev>0?((ep/rev)*100).toFixed(1):0,mo=Math.max(1,Math.round((new Date('2026-12-31')-new Date())/(1000*60*60*24*30))),proj=ep*mo,gap=Math.max(0,1000000-proj);const r=document.getElementById('fRes');r.innerHTML=`<div class="cr"><span class="ck">Revenu net / mois</span><span class="cv ${net>0?'pos':'neg'}">${net.toLocaleString('fr-FR')} €</span></div><div class="cr"><span class="ck">Taux d'épargne</span><span class="cv ${taux<20?'warn':'pos'}">${taux}%${taux<20?' ⚠️':' ✅'}</span></div><div class="cr"><span class="ck">Mois restants fin 2026</span><span class="cv">${mo}</span></div><div class="cr"><span class="ck">Épargne projetée</span><span class="cv">${proj.toLocaleString('fr-FR')} €</span></div><div class="cr"><span class="ck">Gap vers 1M€</span><span class="cv ${gap>0?'warn':'pos'}">${gap>0?gap.toLocaleString('fr-FR')+' €':'✅ Objectif atteint'}</span></div>${gap>0?`<div class="cr"><span class="ck">Extra nécessaire/mois</span><span class="cv neg">${Math.round(gap/mo).toLocaleString('fr-FR')} €</span></div>`:''}`;r.className='calc-r show';}
+function calcDrop(){const nb=+document.getElementById('fBout').value||3,ca=nb*10000,net=Math.round(ca*.7);const r=document.getElementById('dRes');r.innerHTML=`<div class="cr"><span class="ck">Boutiques</span><span class="cv">${nb}</span></div><div class="cr"><span class="ck">CA brut / mois</span><span class="cv pos">${ca.toLocaleString('fr-FR')} €</span></div><div class="cr"><span class="ck">Net / mois</span><span class="cv pos">${net.toLocaleString('fr-FR')} €</span></div><div class="cr"><span class="ck">Revenu annuel</span><span class="cv pos">${(net*12).toLocaleString('fr-FR')} €</span></div><div class="cr"><span class="ck">Chemin vers 1M€</span><span class="cv">${Math.ceil(1000000/net)} mois</span></div>`;r.className='calc-r show';}
+
+// ── CREATIVE ─────────────────────────────────────────
+async function genCreative(){const type=document.getElementById('crType').value,prmt=document.getElementById('crPrmt').value.trim();if(!prmt){toast("Décris ton idée d'abord",'warn');return;}const out=document.getElementById('crOut');out.className='cre-out show';out.innerHTML='<div class="cre-txt">✨ GAIA génère...</div>';try{const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:SYS+`\n\nGénère du contenu créatif de type : ${type}. Original, audacieux, adapté au profil d'Elton.`,messages:[{role:'user',content:prmt}]})});const d=await r.json();const rep=d.content?.find(c=>c.type==='text')?.text||'Erreur';out.innerHTML=`<div class="cre-txt">${rep.replace(/\n/g,'<br>')}</div>`;speak(rep.substring(0,200));}catch(e){out.innerHTML='<div class="cre-txt" style="color:var(--red)">Erreur de connexion.</div>';}}
+
+// ── REMINDERS ────────────────────────────────────────
+let rems=[{t:'Étudier marché bijoux',time:'09:00',p:'#ff3b30',done:false},{t:'Session musculation',time:'06:30',p:'#ff9500',done:false},{t:'Réviser objectifs fin.',time:'20:00',p:'#34c759',done:true}];
+function addRem(){const t=document.getElementById('rTxt').value.trim();if(!t){toast('Écris le rappel','warn');return;}rems.unshift({t,time:document.getElementById('rTime').value,p:document.getElementById('rPrio').value,done:false});renderRems();document.getElementById('rTxt').value='';toast('Rappel ajouté');}
+function togRem(i){rems[i].done=!rems[i].done;renderRems();}
+function renderRems(){const el=document.getElementById('remList');el.innerHTML='';document.getElementById('sTsk').textContent=rems.filter(r=>!r.done).length;const g=document.createElement('div');g.className='lg';rems.forEach((r,i)=>{const d=document.createElement('div');d.className='li';d.innerHTML=`<div class="ios-chk${r.done?' done':''}" onclick="togRem(${i})"></div><div class="lib"><div class="lit" style="${r.done?'text-decoration:line-through;opacity:.4':''}">${r.t}</div>${r.time?`<div class="lis">${r.time}</div>`:''}</div><div class="pdot" style="background:${r.p}"></div>`;g.appendChild(d);});el.appendChild(g);}
+
+// ── AUTO REPLY ───────────────────────────────────────
+let reps=[{w:'prix',r:'Bonjour ! Je reviens vers toi très bientôt. Merci 🙏',app:'WhatsApp',on:true},{w:'disponible',r:'Salut ! En mode focus. Je te rappelle rapidement.',app:'Instagram DM',on:true}];
+function addRep(){const w=document.getElementById('trW').value.trim(),r=document.getElementById('trR').value.trim();if(!w||!r){toast('Remplis les champs','warn');return;}reps.unshift({w,r,app:document.getElementById('trA').value,on:true});renderReps();document.getElementById('trW').value='';document.getElementById('trR').value='';toast('Auto-reply activé');}
+function togRep(i){reps[i].on=!reps[i].on;renderReps();}
+function renderReps(){const el=document.getElementById('repList');el.innerHTML='';const g=document.createElement('div');g.className='lg';reps.forEach((r,i)=>{const d=document.createElement('div');d.className='li';d.innerHTML=`<div class="li-i p">💬</div><div class="lib"><div class="lit">${r.w}</div><div class="lis">${r.app}</div></div><div class="ios-tog${r.on?' on':''}" onclick="togRep(${i})"><div class="tog-k"></div></div>`;g.appendChild(d);});el.appendChild(g);}
+
+// ── UTILS ─────────────────────────────────────────────
+function toast(msg,t='ok'){const w=document.getElementById('tWrap');const d=document.createElement('div');d.className=`toast ${t}`;d.textContent=msg;w.appendChild(d);setTimeout(()=>d.remove(),2500);}
+function dl(ms){return new Promise(r=>setTimeout(r,ms));}
+function p2(n){return String(n).padStart(2,'0');}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body>
+</html>

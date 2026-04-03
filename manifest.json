@@ -1,0 +1,15 @@
+{
+  "name": "GAIA — Agent Personnel d'Elton",
+  "short_name": "GAIA",
+  "description": "Ton agent IA personnel propulsé par Claude",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#007aff",
+  "lang": "fr",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
