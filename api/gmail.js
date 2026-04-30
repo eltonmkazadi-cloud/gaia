@@ -163,6 +163,54 @@ module.exports = async function handler(req, res) {
     const token = await getAccessToken();
     const action = (req.query?.action || req.url.split('?')[1]?.match(/action=([^&]+)/)?.[1] || 'list').toLowerCase();
 
+    // GET ?action=auto — Scan automatique : classifie, archive le spam,
+    // retourne le nombre de messages urgents/normaux pour notif push
+    if (req.method === 'GET' && action === 'auto') {
+      const max = Math.min(parseInt(req.query?.max || '10', 10) || 10, 25);
+      const list = await gmailFetch(
+        token,
+        `/users/me/messages?q=is:unread in:inbox&maxResults=${max}`
+      );
+      const ids = (list.messages || []).map((m) => m.id);
+
+      let urgent = 0, archived = 0, processed = 0;
+      const urgentList = [];
+
+      await Promise.all(
+        ids.map(async (id) => {
+          const msg = await gmailFetch(token, `/users/me/messages/${id}?format=full`);
+          const headers = msg.payload?.headers || [];
+          const h = (n) => headers.find((x) => x.name.toLowerCase() === n.toLowerCase())?.value || '';
+          const subject = h('Subject');
+          const from = h('From');
+          const body = extractBody(msg.payload);
+          const ai = await classifyAndReply(subject, from, body);
+          processed++;
+
+          // Auto-archive le spam
+          if (ai.category === 'spam') {
+            await gmailFetch(token, `/users/me/messages/${id}/modify`, {
+              method: 'POST',
+              body: JSON.stringify({ removeLabelIds: ['INBOX', 'UNREAD'] }),
+            }).catch(() => {});
+            archived++;
+            return;
+          }
+          if (ai.priority === 'urgent') {
+            urgent++;
+            urgentList.push({ from, subject, category: ai.category });
+          }
+        })
+      );
+
+      return res.status(200).json({
+        processed,
+        urgent,
+        archived,
+        urgentList: urgentList.slice(0, 5),
+      });
+    }
+
     // GET ?action=list — Liste les emails non lus + classification IA
     if (req.method === 'GET' || action === 'list') {
       const max = Math.min(parseInt(req.query?.max || '10', 10) || 10, 25);

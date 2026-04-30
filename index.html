@@ -828,11 +828,33 @@ async function sendPush(payload){
     await fetch('/api/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub,payload})});
   }catch(e){console.warn('sendPush failed',e);}
 }
-function scheduleLocalNotif(when,payload){
-  const ms=new Date(when).getTime()-Date.now();
-  if(ms<=0)return sendPush(payload);
-  setTimeout(()=>sendPush(payload),Math.min(ms,2147483000));
+// Planifie une notif push qui se déclenche même app fermée (via /api/cron côté serveur).
+// Fallback : si pas souscrit ou si /api/schedule échoue, retombe sur setTimeout local.
+async function scheduleNotif(when,payload){
+  const dueMs=new Date(when).getTime();
+  if(isNaN(dueMs))return;
+  const sub=pushSub||(localStorage.getItem(PUSH_SUB_KEY)?JSON.parse(localStorage.getItem(PUSH_SUB_KEY)):null);
+  if(!sub){
+    const ms=dueMs-Date.now();
+    if(ms<=0)return;
+    setTimeout(()=>sendPush(payload),Math.min(ms,2147483000));
+    return;
+  }
+  try{
+    const r=await fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub,payload,scheduledAt:new Date(dueMs).toISOString()})});
+    if(!r.ok){
+      const ms=dueMs-Date.now();
+      if(ms<=0)return;
+      setTimeout(()=>sendPush(payload),Math.min(ms,2147483000));
+    }
+  }catch(e){
+    const ms=dueMs-Date.now();
+    if(ms<=0)return;
+    setTimeout(()=>sendPush(payload),Math.min(ms,2147483000));
+  }
 }
+// Alias rétrocompat
+const scheduleLocalNotif=scheduleNotif;
 regSW();
 
 // ── SMS via Twilio ────────────────────────────────────
