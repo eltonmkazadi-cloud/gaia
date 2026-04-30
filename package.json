@@ -1,0 +1,12 @@
+{
+  "name": "gaia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GAIA — Agent IA personnel d'Elton",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

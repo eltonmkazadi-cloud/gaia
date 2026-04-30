@@ -473,6 +473,20 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif
       </div>
       <div style="height:16px"></div>
       <div class="ls" id="repList"></div>
+      <div style="height:20px"></div>
+
+      <div class="sh"><div class="sh-t" style="font-size:17px">Boîte Gmail</div><div class="sh-a" onclick="loadGmail()">⟳ Trier</div></div>
+      <div class="fsec">
+        <button class="btn-act gr" onclick="loadGmail()">Trier mes emails avec GAIA 📧</button>
+      </div>
+      <div style="height:12px"></div>
+      <div class="ls" id="gmailList"></div>
+      <div style="height:16px"></div>
+
+      <div class="sh"><div class="sh-t" style="font-size:17px">Notifications Push</div></div>
+      <div class="fsec">
+        <button class="btn-act" onclick="enablePush()">Activer les notifications push 🔔</button>
+      </div>
       <div style="height:12px"></div>
     </div>
 
@@ -750,7 +764,159 @@ function renderReps(){const el=document.getElementById('repList');el.innerHTML='
 function toast(msg,t='ok'){const w=document.getElementById('tWrap');const d=document.createElement('div');d.className=`toast ${t}`;d.textContent=msg;w.appendChild(d);setTimeout(()=>d.remove(),2500);}
 function dl(ms){return new Promise(r=>setTimeout(r,ms));}
 function p2(n){return String(n).padStart(2,'0');}
-if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+
+// ── SERVICE WORKER + PUSH ─────────────────────────────
+let swReg=null,pushSub=null;
+const PUSH_SUB_KEY='gaia_push_sub';
+function urlB64ToUint8(b64){const pad='='.repeat((4-b64.length%4)%4);const s=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');const raw=atob(s);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));}
+async function regSW(){
+  if(!('serviceWorker' in navigator))return;
+  try{swReg=await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;}catch(e){console.warn('SW reg failed',e);}
+}
+async function enablePush(){
+  if(!swReg||!('PushManager' in window))return toast('Push non supporté','warn');
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted')return toast('Permission refusée','warn');
+    const existing=await swReg.pushManager.getSubscription();
+    if(existing){pushSub=existing;localStorage.setItem(PUSH_SUB_KEY,JSON.stringify(existing));toast('Notifications déjà actives');return existing;}
+    const k=await fetch('/api/push').then(r=>r.json()).catch(()=>({}));
+    if(!k.publicKey)return toast('VAPID non configuré','err');
+    pushSub=await swReg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8(k.publicKey)});
+    localStorage.setItem(PUSH_SUB_KEY,JSON.stringify(pushSub));
+    toast('Notifications activées');
+    sendPush({title:'GAIA',body:'Notifications activées. Discipline avant tout.'});
+    return pushSub;
+  }catch(e){console.error(e);toast('Erreur push: '+e.message,'err');}
+}
+async function sendPush(payload){
+  try{
+    const sub=pushSub||JSON.parse(localStorage.getItem(PUSH_SUB_KEY)||'null');
+    if(!sub)return;
+    await fetch('/api/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub,payload})});
+  }catch(e){console.warn('sendPush failed',e);}
+}
+function scheduleLocalNotif(when,payload){
+  const ms=new Date(when).getTime()-Date.now();
+  if(ms<=0)return sendPush(payload);
+  setTimeout(()=>sendPush(payload),Math.min(ms,2147483000));
+}
+regSW();
+
+// ── SMS via Twilio ────────────────────────────────────
+async function sendSMS(to,message){
+  const r=await fetch('/api/sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to,message})});
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.error||'Erreur SMS');
+  return d;
+}
+
+// ── GMAIL : tri + auto-reply ──────────────────────────
+async function gmailList(max=10){
+  const r=await fetch('/api/gmail?action=list&max='+max);
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.error||'Erreur Gmail');
+  return d.messages||[];
+}
+async function gmailReply(id,bodyTxt){
+  const r=await fetch('/api/gmail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reply',id,body:bodyTxt})});
+  const d=await r.json();if(!r.ok)throw new Error(d.error||'Erreur');return d;
+}
+async function gmailArchive(id){
+  return fetch('/api/gmail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'archive',id})}).then(r=>r.json());
+}
+function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);}
+async function loadGmail(){
+  const el=document.getElementById('gmailList');
+  el.innerHTML='<div class="empty"><div class="empty-ico">⏳</div>GAIA trie ta boîte…</div>';
+  try{
+    const list=await gmailList(10);
+    if(!list.length){el.innerHTML='<div class="empty"><div class="empty-ico">📭</div>Aucun email non lu</div>';return;}
+    const PRIO={urgent:'#ff3b30',normal:'#ff9500',low:'#34c759'};
+    const CAT={client:'💼',fournisseur:'📦',spam:'🚫',admin:'📄',perso:'❤️',other:'📧'};
+    const g=document.createElement('div');g.className='lg';
+    list.forEach(m=>{
+      const d=document.createElement('div');d.className='li';d.style.flexDirection='column';d.style.alignItems='stretch';
+      d.innerHTML=`
+        <div style="display:flex;align-items:center;gap:12px;width:100%">
+          <div class="li-i p">${CAT[m.category]||'📧'}</div>
+          <div class="lib">
+            <div class="lit">${escapeHTML(m.subject||'(sans objet)')}</div>
+            <div class="lis">${escapeHTML(m.from||'')}</div>
+          </div>
+          <div class="pdot" style="background:${PRIO[m.priority]||'#8e8e93'}"></div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin:6px 0 0 46px">${escapeHTML(m.snippet||'')}</div>
+        ${m.suggestedReply?`<div style="margin:10px 0 0 46px;padding:10px;background:var(--inset);border-radius:10px;font-size:13px;line-height:1.5">${escapeHTML(m.suggestedReply).replace(/\n/g,'<br>')}</div>`:''}
+        <div style="display:flex;gap:8px;margin:10px 0 0 46px">
+          ${m.suggestedReply?`<button class="btn-act g" style="flex:1;margin:0;padding:8px;font-size:13px" onclick="doReply('${m.id}',this)">Envoyer la réponse</button>`:''}
+          <button class="btn-act" style="flex:1;margin:0;padding:8px;font-size:13px;background:var(--inset);color:var(--text)" onclick="doArchive('${m.id}',this)">Archiver</button>
+        </div>`;
+      d.dataset.reply=m.suggestedReply||'';
+      g.appendChild(d);
+    });
+    el.innerHTML='';el.appendChild(g);
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-ico">⚠️</div>${escapeHTML(e.message)}</div>`;}
+}
+async function doReply(id,btn){
+  const wrap=btn.closest('.li');const reply=wrap?.dataset.reply||'';
+  if(!reply)return toast('Pas de réponse suggérée','warn');
+  btn.disabled=true;btn.textContent='Envoi…';
+  try{await gmailReply(id,reply);toast('Email envoyé');wrap.style.opacity='.4';}
+  catch(e){toast(e.message,'err');btn.disabled=false;btn.textContent='Envoyer la réponse';}
+}
+async function doArchive(id,btn){
+  const wrap=btn.closest('.li');btn.disabled=true;
+  try{await gmailArchive(id);wrap.style.opacity='.3';toast('Archivé');}
+  catch(e){toast(e.message,'err');btn.disabled=false;}
+}
+
+// Branche le bouton "Programmer le message" sur SMS + push planifié
+const _origSchedMsg=schedMsg;
+schedMsg=async function(){
+  const to=document.getElementById('mTo').value.trim();
+  const txt=document.getElementById('mTxt').value.trim();
+  const date=document.getElementById('mDate').value;
+  const time=document.getElementById('mTime').value;
+  const pl=document.getElementById('mPlat').value;
+  if(!to||!txt||!date||!time){toast('Remplis tous les champs','warn');return;}
+  const when=new Date(`${date}T${time}`);
+  msgs.push({to,txt,date,time,pl});renderMsgs();
+  document.getElementById('mTo').value='';document.getElementById('mTxt').value='';
+  if(pl==='SMS'){
+    const ms=when.getTime()-Date.now();
+    if(ms<=60000){
+      try{await sendSMS(to,txt);toast('SMS envoyé');}catch(e){toast('SMS: '+e.message,'err');}
+    }else{
+      setTimeout(()=>sendSMS(to,txt).catch(e=>toast('SMS: '+e.message,'err')),Math.min(ms,2147483000));
+      toast('SMS programmé');
+    }
+  }else{
+    toast('Message programmé');
+  }
+  scheduleLocalNotif(when,{title:'GAIA — Rappel',body:`${pl} à ${to}: ${txt.substring(0,80)}`,url:'/'});
+};
+
+// Branche les rappels sur push réelles
+const _origAddRem=addRem;
+addRem=function(){
+  const t=document.getElementById('rTxt').value.trim();
+  const time=document.getElementById('rTime').value;
+  if(!t){toast('Écris le rappel','warn');return;}
+  _origAddRem();
+  if(time){
+    const [h,m]=time.split(':').map(Number);
+    const when=new Date();when.setHours(h,m,0,0);
+    if(when.getTime()<Date.now())when.setDate(when.getDate()+1);
+    scheduleLocalNotif(when,{title:'GAIA — Rappel',body:t,url:'/'});
+  }
+};
+
+// Active push automatiquement après déverrouillage (avec délai)
+const _origUnlockApp=unlockApp;
+unlockApp=function(){_origUnlockApp();setTimeout(()=>{if(Notification.permission==='default')enablePush();else if(Notification.permission==='granted')enablePush();},2000);};
+
+if('serviceWorker' in navigator&&!swReg)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>
 </html>
