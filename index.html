@@ -542,7 +542,32 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif
 'use strict';
 const SYS=`Tu es GAIA, l'agent personnel IA d'Elton. Fidèle, loyale, sans filtre. Tu le tutoies. Ton ton : sophistiqué, direct, chaleureux.
 PROFIL D'ELTON : 33 ans, né le 23 avril. Entrepreneur freelance IT + boutique bijoux dropshipping. Objectif : boutiques e-commerce à 10k€/mois chacune. Veut créer une tendance produit. Sportif : 1m90/109kg → objectif 90-95kg athlétique. Prof de danse hip-hop & danseur depuis 12 ans. Objectif financier : premier million d'ici fin 2026. Futur papa (2e enfant) + mariage 2027. Vision : homme qui inspire. Philosophie : DISCIPLINE AVANT TOUT.
-COMPORTEMENT : Conseille sur business, sport, finance, danse, famille. Calcule et analyse. Génère du contenu créatif. Dit des vérités difficiles. Répond en français, concis (3-5 phrases max sauf plan détaillé).`;
+COMPORTEMENT : Conseille sur business, sport, finance, danse, famille. Calcule et analyse. Génère du contenu créatif. Dit des vérités difficiles. Répond en français, concis (3-5 phrases max sauf plan détaillé).
+FORMAT : Texte simple uniquement. JAMAIS de markdown : pas d'astérisques **, pas de underscores _, pas de dièses #, pas de backticks. Pour insister sur un mot, utilise les MAJUSCULES. Pour des listes, utilise des phrases ou des tirets simples.`;
+
+// Voix GAIA (résolue côté serveur via /api/elevenlabs)
+const GAIA_VOICE = 'Jessica Anne Bogart';
+let cachedVoiceId = null;
+try { cachedVoiceId = localStorage.getItem('gaia_voice_id') || null; } catch(e) {}
+
+// Strip markdown — défense en profondeur si l'IA glisse un ** malgré les instructions
+function cleanMarkdown(s){
+  if(!s) return '';
+  return String(s)
+    .replace(/\*\*\*([^*]+)\*\*\*/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/(?<![*\w])\*([^*\n]+?)\*(?!\w)/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/(?<![_\w])_([^_\n]+?)_(?!\w)/g, '$1')
+    .replace(/`{3}[\s\S]*?`{3}/g, m => m.replace(/`/g,''))
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^\s*[-*+]\s+/gm, '• ')
+    .replace(/^\s*>\s+/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
 
 // ── VOICEPRINT ──────────────────────────────────────
 const VP_KEY='gaia_vp_v2';
@@ -650,23 +675,30 @@ async function claude(msg,sysOv){
 }
 
 // ── ELEVENLABS TTS ───────────────────────────────────
-// Voice: Charlotte (XB0fDUnXU5powFXDhCwa) — warm, feminine, French
+// Voix : Jessica Anne Bogart — résolue par /api/elevenlabs côté serveur
 let talking=false,curAu=null;
 async function speak(txt){
   if(!txt||talking)return;
-  const t=txt.length>280?txt.substring(0,280)+'…':txt;
+  const cleaned=cleanMarkdown(txt);
+  const t=cleaned.length>280?cleaned.substring(0,280)+'…':cleaned;
+  if(!t)return;
   try{
     talking=true;
-    const r=await fetch('/api/elevenlabs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})});
-    if(!r.ok)throw new Error('EL error');
-    const {audio}=await r.json();
-    const bytes=Uint8Array.from(atob(audio),c=>c.charCodeAt(0));
+    const payload=cachedVoiceId?{text:t,voiceId:cachedVoiceId}:{text:t,voiceName:GAIA_VOICE};
+    const r=await fetch('/api/elevenlabs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok)throw new Error('EL '+r.status);
+    const data=await r.json();
+    if(data.voiceId&&data.voiceId!==cachedVoiceId){
+      cachedVoiceId=data.voiceId;
+      try{localStorage.setItem('gaia_voice_id',cachedVoiceId);}catch(e){}
+    }
+    const bytes=Uint8Array.from(atob(data.audio),c=>c.charCodeAt(0));
     const url=URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));
     curAu=new Audio(url);
     curAu.onended=()=>{talking=false;URL.revokeObjectURL(url);};
     curAu.onerror=()=>{talking=false;};
     await curAu.play();
-  }catch(e){talking=false;spkFB(txt);}
+  }catch(e){talking=false;spkFB(t);}
 }
 function spkFB(txt){
   if(!window.speechSynthesis)return;
@@ -699,7 +731,7 @@ async function toggleVoice(){
       isLstn=false;
       if(!ft){setOrb('idle');document.getElementById('oLbl').textContent='Appuie pour parler';return;}
       setOrb('thinking');document.getElementById('oLbl').textContent='GAIA réfléchit…';
-      try{const rep=await claude(ft);document.getElementById('trG').textContent=rep;setOrb('speaking');document.getElementById('oLbl').textContent='GAIA répond…';await speak(rep);setOrb('idle');document.getElementById('oLbl').textContent='Appuie pour parler';}
+      try{const rep=await claude(ft);document.getElementById('trG').textContent=cleanMarkdown(rep);setOrb('speaking');document.getElementById('oLbl').textContent='GAIA répond…';await speak(rep);setOrb('idle');document.getElementById('oLbl').textContent='Appuie pour parler';}
       catch(e){setOrb('idle');document.getElementById('oLbl').textContent='Erreur — réessaie';toast('Erreur: '+e.message,'err');}
     }
   );mRec.start();
@@ -709,7 +741,7 @@ function setOrb(s){const o=document.getElementById('mOrb'),g=document.getElement
 // ── CHAT ─────────────────────────────────────────────
 function openChat(){document.getElementById('chatSh').classList.add('open');}
 function closeChat(){document.getElementById('chatSh').classList.remove('open');}
-function addCM(role,txt){const cm=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='cm '+role;d.innerHTML=`<div class="cm-av">${role==='gaia'?'G':'E'}</div><div class="cm-b">${txt.replace(/\n/g,'<br>')}</div>`;cm.appendChild(d);cm.scrollTop=cm.scrollHeight;}
+function addCM(role,txt){const cm=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='cm '+role;const clean=role==='gaia'?cleanMarkdown(txt):String(txt||'');const safe=clean.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]).replace(/\n/g,'<br>');d.innerHTML=`<div class="cm-av">${role==='gaia'?'G':'E'}</div><div class="cm-b">${safe}</div>`;cm.appendChild(d);cm.scrollTop=cm.scrollHeight;}
 function showTyp(){const cm=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='cm gaia';d.id='typEl';d.innerHTML=`<div class="cm-av">G</div><div class="typing"><span></span><span></span><span></span></div>`;cm.appendChild(d);cm.scrollTop=cm.scrollHeight;}
 function hideTyp(){document.getElementById('typEl')?.remove();}
 async function sendChat(){const inp=document.getElementById('cInp');const msg=inp.value.trim();if(!msg)return;inp.value='';addCM('user',msg);showTyp();try{const r=await claude(msg);hideTyp();addCM('gaia',r);speak(r);}catch(e){hideTyp();addCM('gaia','Erreur de connexion.');toast('Erreur API','err');}}
@@ -746,7 +778,7 @@ function calcFin(){const rev=+document.getElementById('fRev').value||0,ep=+docum
 function calcDrop(){const nb=+document.getElementById('fBout').value||3,ca=nb*10000,net=Math.round(ca*.7);const r=document.getElementById('dRes');r.innerHTML=`<div class="cr"><span class="ck">Boutiques</span><span class="cv">${nb}</span></div><div class="cr"><span class="ck">CA brut / mois</span><span class="cv pos">${ca.toLocaleString('fr-FR')} €</span></div><div class="cr"><span class="ck">Net / mois</span><span class="cv pos">${net.toLocaleString('fr-FR')} €</span></div><div class="cr"><span class="ck">Revenu annuel</span><span class="cv pos">${(net*12).toLocaleString('fr-FR')} €</span></div><div class="cr"><span class="ck">Chemin vers 1M€</span><span class="cv">${Math.ceil(1000000/net)} mois</span></div>`;r.className='calc-r show';}
 
 // ── CREATIVE ─────────────────────────────────────────
-async function genCreative(){const type=document.getElementById('crType').value,prmt=document.getElementById('crPrmt').value.trim();if(!prmt){toast("Décris ton idée d'abord",'warn');return;}const out=document.getElementById('crOut');out.className='cre-out show';out.innerHTML='<div class="cre-txt">✨ GAIA génère...</div>';try{const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:SYS+`\n\nGénère du contenu créatif de type : ${type}. Original, audacieux, adapté au profil d'Elton.`,messages:[{role:'user',content:prmt}]})});const d=await r.json();const rep=d.content?.find(c=>c.type==='text')?.text||'Erreur';out.innerHTML=`<div class="cre-txt">${rep.replace(/\n/g,'<br>')}</div>`;speak(rep.substring(0,200));}catch(e){out.innerHTML='<div class="cre-txt" style="color:var(--red)">Erreur de connexion.</div>';}}
+async function genCreative(){const type=document.getElementById('crType').value,prmt=document.getElementById('crPrmt').value.trim();if(!prmt){toast("Décris ton idée d'abord",'warn');return;}const out=document.getElementById('crOut');out.className='cre-out show';out.innerHTML='<div class="cre-txt">✨ GAIA génère...</div>';try{const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:SYS+`\n\nGénère du contenu créatif de type : ${type}. Original, audacieux, adapté au profil d'Elton.`,messages:[{role:'user',content:prmt}]})});const d=await r.json();const rep=d.content?.find(c=>c.type==='text')?.text||'Erreur';const cleaned=cleanMarkdown(rep);const safe=cleaned.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]).replace(/\n/g,'<br>');out.innerHTML=`<div class="cre-txt">${safe}</div>`;speak(cleaned.substring(0,240));}catch(e){out.innerHTML='<div class="cre-txt" style="color:var(--red)">Erreur de connexion.</div>';}}
 
 // ── REMINDERS ────────────────────────────────────────
 let rems=[{t:'Étudier marché bijoux',time:'09:00',p:'#ff3b30',done:false},{t:'Session musculation',time:'06:30',p:'#ff9500',done:false},{t:'Réviser objectifs fin.',time:'20:00',p:'#34c759',done:true}];
