@@ -175,8 +175,11 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // GET ?action=auto — Scan automatique : classifie, archive le spam,
-    // retourne le nombre de messages urgents/normaux pour notif push
+    // GET ?action=auto — Scan automatique : classifie + traite
+    //   spam        → archive (retire INBOX + UNREAD)
+    //   urgent      → laisse non-lu, signale dans urgentList
+    //   non-urgent  → marque comme lu (retire UNREAD seulement, reste dans INBOX)
+    // → boîte propre : seuls les urgents restent en non-lu
     if (req.method === 'GET' && action === 'auto') {
       const max = Math.min(parseInt(req.query?.max || '10', 10) || 10, 25);
       const list = await gmailFetch(
@@ -184,8 +187,9 @@ module.exports = async function handler(req, res) {
         `/users/me/messages?q=is:unread in:inbox&maxResults=${max}`
       );
       const ids = (list.messages || []).map((m) => m.id);
+      const totalEstimate = list.resultSizeEstimate || 0;
 
-      let urgent = 0, archived = 0, processed = 0;
+      let urgent = 0, archived = 0, marked = 0, processed = 0;
       const urgentList = [];
 
       await Promise.all(
@@ -199,7 +203,7 @@ module.exports = async function handler(req, res) {
           const ai = await classifyAndReply(subject, from, body);
           processed++;
 
-          // Auto-archive le spam
+          // Spam → archive
           if (ai.category === 'spam') {
             await gmailFetch(token, `/users/me/messages/${id}/modify`, {
               method: 'POST',
@@ -208,10 +212,18 @@ module.exports = async function handler(req, res) {
             archived++;
             return;
           }
+          // Urgent → reste non-lu, signal
           if (ai.priority === 'urgent') {
             urgent++;
             urgentList.push({ from, subject, category: ai.category });
+            return;
           }
+          // Non-urgent non-spam → marque comme lu (retire UNREAD)
+          await gmailFetch(token, `/users/me/messages/${id}/modify`, {
+            method: 'POST',
+            body: JSON.stringify({ removeLabelIds: ['UNREAD'] }),
+          }).catch(() => {});
+          marked++;
         })
       );
 
@@ -219,6 +231,8 @@ module.exports = async function handler(req, res) {
         processed,
         urgent,
         archived,
+        marked,
+        remaining: Math.max(0, totalEstimate - processed),
         urgentList: urgentList.slice(0, 5),
       });
     }
