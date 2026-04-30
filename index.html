@@ -492,6 +492,67 @@ body::after{
 .toast.ok{background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:var(--green)}
 .toast.warn{background:rgba(255,149,0,.15);border:1px solid rgba(255,149,0,.3);color:var(--orange)}
 .toast.err{background:rgba(255,0,54,.15);border:1px solid rgba(255,0,54,.3);color:var(--red)}
+
+/* ═══ NEW WIDGETS (cohérent cyberpunk) ═══ */
+.wx-card{margin:0 14px 12px;padding:14px;background:linear-gradient(135deg,rgba(0,200,255,.07),rgba(120,80,255,.05));border:1px solid rgba(0,200,255,.18);border-radius:12px;display:flex;align-items:center;gap:12px}
+.wx-emoji{font-size:36px;line-height:1}
+.wx-info{flex:1}
+.wx-temp{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--cyan,#00c8ff)}
+.wx-desc{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.75}
+.wx-meta{font-size:9px;letter-spacing:.5px;opacity:.5;margin-top:2px}
+
+.timer-c{margin:0 14px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(0,200,255,.2);border-radius:12px;padding:14px;text-align:center}
+.timer-disp{font-size:38px;font-weight:300;letter-spacing:-1px;font-variant-numeric:tabular-nums;color:var(--cyan,#00c8ff);margin:6px 0}
+.timer-disp.run{animation:pulseGlow 1.5s ease infinite}
+@keyframes pulseGlow{50%{text-shadow:0 0 16px rgba(0,200,255,.5)}}
+.timer-acts{display:flex;gap:8px;justify-content:center}
+.timer-acts button{flex:1;max-width:120px;padding:10px;border:1px solid rgba(0,200,255,.3);background:rgba(0,200,255,.08);color:var(--cyan,#00c8ff);font-size:10px;letter-spacing:1px;border-radius:8px;cursor:pointer;font-weight:600}
+.timer-acts button.pause{background:rgba(255,149,0,.1);border-color:rgba(255,149,0,.3);color:var(--orange,#ff9500)}
+
+.wt-card{margin:0 14px 12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px}
+.wt-now{font-size:24px;font-weight:700;letter-spacing:-1px}
+.wt-now small{font-size:11px;opacity:.5;margin-left:3px}
+.wt-track{height:5px;background:rgba(255,255,255,.06);border-radius:3px;margin:8px 0;overflow:hidden}
+.wt-fill{height:100%;background:linear-gradient(90deg,#34d399,var(--cyan,#00c8ff));transition:width .4s}
+.wt-stats{font-size:9px;letter-spacing:.5px;opacity:.55;text-transform:uppercase}
+.wt-form{display:flex;gap:6px;margin-top:8px}
+.wt-form input{flex:1;padding:8px 10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#fff;font-size:13px;outline:none}
+.wt-form button{padding:8px 14px;background:rgba(0,200,255,.12);border:1px solid rgba(0,200,255,.3);color:var(--cyan,#00c8ff);font-size:9px;letter-spacing:1px;border-radius:6px;cursor:pointer;font-weight:600}
+
+.proj-c{margin:0 14px 14px;padding:14px;background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(0,200,255,.06));border:1px solid rgba(52,211,153,.25);border-radius:12px;text-align:center}
+.proj-amount{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--cyan,#00c8ff);margin:4px 0}
+.proj-bar{height:6px;background:rgba(255,255,255,.06);border-radius:3px;margin:8px 0;overflow:hidden}
+.proj-fill{height:100%;background:linear-gradient(90deg,#34d399,var(--cyan,#00c8ff),#a855f7);transition:width .4s}
+.proj-pct{font-size:10px;letter-spacing:.5px;color:var(--green,#34d399);font-weight:600}
+
+.bt-c{margin:0 14px 8px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px}
+.bt-h{display:flex;justify-content:space-between;margin-bottom:6px}
+.bt-name{font-size:12px;font-weight:600;letter-spacing:.5px}
+.bt-rev{font-size:13px;font-weight:700;color:var(--green,#34d399)}
+.bt-bar{height:4px;background:rgba(255,255,255,.06);border-radius:3px;margin:4px 0;overflow:hidden}
+.bt-fill{height:100%;background:var(--green,#34d399)}
+.bt-meta{font-size:9px;opacity:.5;letter-spacing:.5px;text-transform:uppercase}
+
+.fam-event{margin:0 14px 8px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;display:flex;gap:12px;align-items:center}
+.fam-ico{width:36px;height:36px;border-radius:9px;background:rgba(255,45,85,.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.fam-meta{flex:1}
+.fam-title{font-size:13px;font-weight:600}
+.fam-date{font-size:10px;opacity:.55;margin-top:1px}
+.fam-count{font-size:9px;color:var(--cyan,#00c8ff);font-weight:600;margin-top:2px;letter-spacing:.5px;text-transform:uppercase}
+
+/* Bouton vocal sur l'orbe (brief / emails) */
+.orb-quick{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 14px;margin-top:4px}
+.orb-quick button{padding:8px 12px;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);border-radius:18px;color:#fff;font-size:10px;letter-spacing:1px;font-weight:600;cursor:pointer}
+.orb-quick button:active{opacity:.7}
+
+/* Badge module emails */
+.mod-badge{display:inline-block;background:#ff0036;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;min-width:14px;text-align:center}
+
+/* Email actions extras */
+.email-acts{display:flex;gap:6px;margin-top:8px}
+.email-acts button{flex:1;padding:7px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:6px;color:#fff;font-size:9px;letter-spacing:.5px;cursor:pointer}
+.email-acts button.danger{background:rgba(255,0,54,.1);border-color:rgba(255,0,54,.25);color:var(--red,#ff0036)}
+.email-acts button.read{background:rgba(0,200,255,.1);border-color:rgba(0,200,255,.25);color:var(--cyan,#00c8ff);flex:0 0 36px}
 </style>
 </head>
 <body>
@@ -589,10 +650,18 @@ body::after{
         <div class="orb-txt" id="orbTxt"></div>
       </div>
 
+      <div class="orb-quick">
+        <button onclick="readEmailsAloud()">📧 LIS MES EMAILS <span id="emailVoiceBadge" style="display:none"></span></button>
+        <button onclick="readBriefingAloud()">📰 BRIEF DU JOUR</button>
+      </div>
+
       <div class="transcript" id="transcript">
         <div class="tr-row"><div class="tr-role">TOI</div><div class="tr-txt" id="trU"></div></div>
         <div class="tr-row"><div class="tr-role" style="color:var(--cyan)">GAIA</div><div class="tr-txt" id="trG"></div></div>
       </div>
+
+      <!-- Weather widget -->
+      <div id="wxBox"></div>
 
       <div class="stats-grid">
         <div class="stat"><div class="stat-n" id="sMsg">0</div><div class="stat-l">MESSAGES</div></div>
@@ -605,9 +674,10 @@ body::after{
         <div class="mod" onclick="gv('messages')"><div class="mod-ico">📨</div><div class="mod-t">Messages</div><div class="mod-s">PROGRAMMER</div></div>
         <div class="mod" onclick="gv('sport')"><div class="mod-ico">⚡</div><div class="mod-t">Sport</div><div class="mod-s">109→90KG</div></div>
         <div class="mod" onclick="gv('finance')"><div class="mod-ico">💰</div><div class="mod-t">Finance</div><div class="mod-s">1M€ OBJECTIF</div></div>
-        <div class="mod" onclick="gv('emails')"><div class="mod-ico">📧</div><div class="mod-t">Emails</div><div class="mod-s">GMAIL IA</div></div>
+        <div class="mod" onclick="gv('emails')"><div class="mod-ico">📧</div><div class="mod-t">Emails<span id="emailModBadge" class="mod-badge" style="display:none">0</span></div><div class="mod-s">GMAIL IA</div></div>
         <div class="mod" onclick="gv('creative')"><div class="mod-ico">✨</div><div class="mod-t">Créatif</div><div class="mod-s">GÉNÉRER</div></div>
         <div class="mod" onclick="gv('reminders')"><div class="mod-ico">🔔</div><div class="mod-t">Rappels</div><div class="mod-s">AGENDA</div></div>
+        <div class="mod" onclick="gv('family')"><div class="mod-ico">❤️</div><div class="mod-t">Famille</div><div class="mod-s">MARIAGE · BÉBÉ</div></div>
         <div class="mod" onclick="gv('autoreply')"><div class="mod-ico">🤖</div><div class="mod-t">Auto-Reply</div><div class="mod-s">AUTOMATISER</div></div>
         <div class="mod" onclick="openChat()"><div class="mod-ico">💬</div><div class="mod-t">Chat GAIA</div><div class="mod-s">CLAUDE AI</div></div>
       </div>
@@ -636,7 +706,30 @@ body::after{
       <div class="view-hdr"><div class="view-title">SPORT</div><div class="view-back" onclick="gv('home')">‹ HOME</div></div>
       <div style="padding:0 14px 8px">
         <div class="metric"><div class="metric-val">109 → 90 kg</div><div class="metric-lbl">TRANSFORMATION ATHLÉTIQUE</div></div>
-        <div class="prog"><div class="prog-hdr"><div class="prog-key">PROGRESSION</div><div class="prog-val">0%</div></div><div class="prog-track"><div class="prog-fill" style="width:5%"></div></div></div>
+        <div class="prog"><div class="prog-hdr"><div class="prog-key">PROGRESSION</div><div class="prog-val" id="wtPctTxt">0%</div></div><div class="prog-track"><div class="prog-fill" id="wtFill" style="width:0%"></div></div></div>
+      </div>
+
+      <div class="sec"><div class="sec-hdr">TIMER DE SÉANCE</div></div>
+      <div class="timer-c">
+        <div class="timer-disp" id="timerDisp">00:00</div>
+        <div class="timer-acts">
+          <button id="timerStart" onclick="timerToggle()">DÉMARRER</button>
+          <button onclick="timerReset()">RESET</button>
+        </div>
+      </div>
+
+      <div class="sec"><div class="sec-hdr">SUIVI POIDS</div></div>
+      <div class="wt-card">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+          <div class="wt-now" id="wtNow">109<small>kg</small></div>
+          <div style="font-size:10px;letter-spacing:.5px;opacity:.55">OBJ 92 KG</div>
+        </div>
+        <div class="wt-track"><div class="wt-fill" id="wtFill2" style="width:0%"></div></div>
+        <div class="wt-stats" id="wtStats">— KG PERDUS · — PESÉES</div>
+        <div class="wt-form">
+          <input type="number" id="wtInput" placeholder="Pèse-toi aujourd'hui" step="0.1">
+          <button onclick="addWeight()">ENREGISTRER</button>
+        </div>
       </div>
       <div class="sec"><div class="sec-hdr">SEMAINE</div></div>
       <div class="week-grid" id="weekR"></div>
@@ -660,6 +753,19 @@ body::after{
       <div style="padding:0 14px 8px">
         <div class="metric"><div class="metric-val">1 000 000 €</div><div class="metric-lbl">OBJECTIF · FIN 2026</div></div>
       </div>
+
+      <!-- Projection live -->
+      <div class="proj-c">
+        <div style="font-size:9px;letter-spacing:1px;opacity:.55">PROJECTION CUMULÉE TOUTES BOUTIQUES</div>
+        <div class="proj-amount" id="projAmount">0 €</div>
+        <div class="proj-bar"><div class="proj-fill" id="projFill" style="width:0%"></div></div>
+        <div class="proj-pct" id="projPct">0% · 0 mois restants</div>
+      </div>
+
+      <!-- Boutiques tracker -->
+      <div class="sec"><div class="sec-hdr">BOUTIQUES <span style="margin-left:auto;font-size:9px;cursor:pointer;color:var(--cyan)" onclick="openSh('btSheet')">+ AJOUTER</span></div></div>
+      <div id="btList"></div>
+      <div style="height:8px"></div>
       <div class="form-sec">
         <div class="field"><label class="field-lbl">// REVENUS / MOIS (€)</label><input type="number" id="fRev" placeholder="Ex: 3000"></div>
         <div class="field"><label class="field-lbl">// ÉPARGNE / MOIS (€)</label><input type="number" id="fEp" placeholder="Ex: 500"></div>
@@ -733,6 +839,27 @@ body::after{
       <div style="padding:0 14px" id="repList"></div>
     </div>
 
+    <!-- FAMILY VIEW -->
+    <div class="view" id="vFamily">
+      <div class="view-hdr"><div class="view-title">FAMILLE</div><div class="view-back" onclick="gv('home')">‹ HOME</div></div>
+      <div class="sec"><div class="sec-hdr">ÉVÉNEMENTS</div></div>
+      <div id="famEvents"></div>
+      <div class="sec" style="margin-top:14px"><div class="sec-hdr">AJOUTER</div></div>
+      <div class="form-sec">
+        <div class="field"><label class="field-lbl">// TYPE</label><select id="famType"><option value="💍">💍 Mariage</option><option value="👶">👶 Bébé</option><option value="🎂">🎂 Anniversaire</option><option value="🎊">🎊 Famille</option><option value="✈️">✈️ Voyage</option></select></div>
+        <div class="field"><label class="field-lbl">// TITRE</label><input type="text" id="famTitle" placeholder="Réserver le lieu, ..."></div>
+        <div class="field"><label class="field-lbl">// DATE</label><input type="date" id="famDate"></div>
+        <button class="btn-cyber" onclick="addFamily()">+ AJOUTER</button>
+      </div>
+      <div class="sec" style="margin-top:14px"><div class="sec-hdr">DEMANDE À GAIA</div></div>
+      <div class="form-sec">
+        <button class="btn-cyber" onclick="famAskGaia('mariage')">💍 PLAN MARIAGE 2027</button>
+        <div style="height:8px"></div>
+        <button class="btn-cyber" onclick="famAskGaia('bébé')">👶 PRÉPARATION BÉBÉ 2</button>
+      </div>
+      <div class="cre-out" id="famAdvice"></div>
+    </div>
+
   </div><!-- /scroll -->
 
   <!-- TAB BAR -->
@@ -745,6 +872,23 @@ body::after{
   </div>
 
 </div><!-- /mainScreen -->
+
+<!-- BOUTIQUE SHEET -->
+<div class="sh-ov" id="btSheet" onclick="closeSh2(event,'btSheet')">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div class="sh-title">NOUVELLE BOUTIQUE</div>
+    <div class="form-sec" style="margin-top:14px">
+      <div class="field"><label class="field-lbl">// NOM</label><input type="text" id="btName" placeholder="Boutique 1"></div>
+      <div class="field"><label class="field-lbl">// NICHE</label><input type="text" id="btNiche" placeholder="bijoux, déco..."></div>
+      <div class="field-row">
+        <div class="field"><label class="field-lbl">// REVENU MOIS (€)</label><input type="number" id="btRev" placeholder="0"></div>
+        <div class="field"><label class="field-lbl">// OBJECTIF (€)</label><input type="number" id="btGoal" value="10000"></div>
+      </div>
+      <button class="btn-cyber green" onclick="addBoutique()">+ AJOUTER</button>
+    </div>
+  </div>
+</div>
 
 <!-- SESSION SHEET -->
 <div class="sh-ov" id="sessSheet" onclick="closeSh2(event,'sessSheet')">
@@ -800,12 +944,74 @@ const SYS=`Tu es GAIA, l'agent personnel IA d'Elton. Fidèle, loyale, sans filtr
 PROFIL D'ELTON : 33 ans, né le 23 avril. Entrepreneur freelance IT + boutique bijoux dropshipping. Objectif : boutiques à 10k€/mois chacune. Sportif : 1m90/109kg → 90-95kg athlétique. Prof danse hip-hop depuis 12 ans. Objectif : 1M€ fin 2026. Futur papa x2 + mariage 2027. Vision : homme qui inspire. Philosophie : DISCIPLINE AVANT TOUT.`;
 
 // ════════════════════════════════════════
+// HELPERS GLOBAUX (storage, hash, share, geo)
+// ════════════════════════════════════════
+const storage={
+  get:(k,def=null)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}},
+  del:(k)=>{try{localStorage.removeItem(k);}catch(e){}},
+};
+async function sha256(text){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function cleanMarkdown(s){
+  if(!s)return '';
+  return String(s)
+    .replace(/\*\*\*([^*]+)\*\*\*/g,'$1')
+    .replace(/\*\*([^*]+)\*\*/g,'$1')
+    .replace(/(?<![*\w])\*([^*\n]+?)\*(?!\w)/g,'$1')
+    .replace(/__([^_]+)__/g,'$1')
+    .replace(/(?<![_\w])_([^_\n]+?)_(?!\w)/g,'$1')
+    .replace(/`{3}[\s\S]*?`{3}/g,m=>m.replace(/`/g,''))
+    .replace(/`([^`]+)`/g,'$1')
+    .replace(/^#{1,6}\s+/gm,'')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
+    .replace(/^\s*[-*+]\s+/gm,'• ')
+    .replace(/^\s*>\s+/gm,'')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+async function shareNative({title,text,url}){
+  if(navigator.share){try{await navigator.share({title,text,url});return true;}catch(e){return false;}}
+  return false;
+}
+function getLocation(){
+  return new Promise((resolve,reject)=>{
+    if(!navigator.geolocation)return reject(new Error('geolocation'));
+    const c=storage.get('gaia_geo');
+    if(c&&Date.now()-c.ts<1800000)return resolve(c);
+    navigator.geolocation.getCurrentPosition(
+      pos=>{const o={lat:pos.coords.latitude,lon:pos.coords.longitude,ts:Date.now()};storage.set('gaia_geo',o);resolve(o);},
+      err=>reject(err),
+      {enableHighAccuracy:false,timeout:8000,maximumAge:1800000}
+    );
+  });
+}
+window.gaiaCtx={};
+
+// Session 24h après auth réussie
+const SESSION_KEY='gaia_session_v1';
+const SESSION_MS=24*3600*1000;
+function isSessionValid(){const s=storage.get(SESSION_KEY);return s&&s.expires&&Date.now()<s.expires;}
+function startSession(){storage.set(SESSION_KEY,{expires:Date.now()+SESSION_MS,startedAt:Date.now()});}
+
+// ════════════════════════════════════════
 // VOICEPRINT AUTH
 // ════════════════════════════════════════
 const VP_KEY='gaia_vp_v2',PIN_KEY='gaia_pin_v1';
 let vp=null,enrollArr=[],authBusy=false;
 const SIM_THR=0.82,N_ENROLL=3;
 try{const s=localStorage.getItem(VP_KEY);if(s)vp=JSON.parse(s);}catch(e){}
+
+// ⚠️ MIGRATION : si un PIN en clair existe (ancien stockage), on le hash maintenant
+(async()=>{
+  const existing=localStorage.getItem(PIN_KEY);
+  if(existing&&/^\d{6}$/.test(existing)){
+    const h=await sha256(existing);
+    storage.set(PIN_KEY,h);
+  }
+})();
 
 async function capFeatures(ms=2800){
   return new Promise(async(res,rej)=>{
@@ -874,31 +1080,101 @@ async function doEnroll(){
   try{localStorage.setItem(VP_KEY,JSON.stringify(vp));}catch(e){}
   setGlobe('granted');setLbl('Voix enregistrée !');
   document.getElementById('eDots').style.display='none';
-  await dl(900);unlockApp();
+  await dl(900);
+  if(!storage.get(PIN_KEY))return setupPinByVoice();
+  startSession();unlockApp();
 }
 async function doVerify(){
+  // Étape 1 — biométrie vocale
   setGlobe('listening');setLbl('Parle maintenant...');vpAnim=true;
+  let voiceOk=false;
   try{
     const f=await capFeatures(2500);vpAnim=false;
-    setGlobe('verifying');setLbl('Vérification...');await dl(900);
+    setGlobe('verifying');setLbl('Vérification voix...');await dl(700);
     const sim=cosSim(f,vp);
-    if(sim>=SIM_THR){setGlobe('granted');setLbl('Voix reconnue — Accès accordé');await dl(700);unlockApp();}
-    else{setGlobe('denied');setLbl('Voix non reconnue — Réessaie');await dl(1500);setGlobe('');}
-  }catch(e){vpAnim=false;setLbl('Micro indisponible');await dl(1000);showPin();}
+    voiceOk=sim>=SIM_THR;
+  }catch(e){vpAnim=false;setLbl('Micro indisponible');await dl(900);showPin();return;}
+  if(!voiceOk){
+    setGlobe('denied');setLbl('Voix non reconnue');
+    await dl(1300);setGlobe('');setLbl('Appuie pour réessayer ou utilise le PIN');
+    return;
+  }
+  // Étape 2 — PIN demandé de vive voix
+  const stored=storage.get(PIN_KEY);
+  if(!stored){return setupPinByVoice();}
+  setGlobe('verifying');setLbl('Voix OK · Donne ton PIN');
+  try{await speak('Donne-moi ton PIN, Elton.');}catch(_){}
+  setGlobe('listening');setLbl("J'écoute le PIN...");
+  const spoken=await captureSpokenPin(6500);
+  if(spoken.length!==6){
+    setGlobe('denied');
+    setLbl(spoken.length?`${spoken.length}/6 chiffres reçus`:'Aucun chiffre détecté');
+    await dl(1500);setGlobe('');showPin();return;
+  }
+  const h=await sha256(spoken);
+  if(h===stored){setGlobe('granted');setLbl('Voix + PIN OK');await dl(500);startSession();unlockApp();}
+  else{setGlobe('denied');setLbl('PIN incorrect');await dl(1300);setGlobe('');showPin();}
+}
+
+async function setupPinByVoice(){
+  setGlobe('listening');setLbl('Choisis ton PIN à 6 chiffres');
+  try{await speak('Maintenant, choisis ton PIN à 6 chiffres et dis-le-moi.');}catch(_){}
+  let first='';
+  for(let tries=0;tries<3;tries++){
+    setLbl('Dis 6 chiffres...');
+    first=await captureSpokenPin(7500);
+    if(first.length===6)break;
+    setLbl(`6 chiffres requis (reçu ${first.length})`);await dl(1000);
+  }
+  if(first.length!==6){setLbl('Configure ton PIN au clavier');await dl(900);showPin();return;}
+  setLbl('Répète pour confirmer');
+  try{await speak('Répète-le pour confirmer.');}catch(_){}
+  const second=await captureSpokenPin(7500);
+  if(second!==first){setLbl('PIN différent. Configure au clavier.');await dl(1100);showPin();return;}
+  const h=await sha256(first);
+  storage.set(PIN_KEY,h);
+  setGlobe('granted');setLbl('Voix + PIN enregistrés !');
+  await dl(900);startSession();unlockApp();
+}
+
+// PIN vocal : parser FR + capture SR
+function parseFrenchDigits(transcript){
+  if(!transcript)return '';
+  const map={'zéro':'0','zero':'0','un':'1','une':'1','deux':'2','trois':'3','quatre':'4','cinq':'5','six':'6','sept':'7','huit':'8','neuf':'9'};
+  let s=String(transcript).toLowerCase();
+  for(const [w,d] of Object.entries(map))s=s.replace(new RegExp(`\\b${w}\\b`,'g'),' '+d+' ');
+  return (s.match(/\d/g)||[]).join('');
+}
+function captureSpokenPin(timeoutMs=6500){
+  return new Promise(resolve=>{
+    if(!SR){resolve('');return;}
+    let pin='',stopped=false;
+    const r=new SR();r.lang='fr-FR';r.continuous=false;r.interimResults=true;
+    r.onresult=e=>{const t=Array.from(e.results).map(x=>x[0].transcript).join('');pin=parseFrenchDigits(t);if(pin.length>=6&&!stopped){stopped=true;try{r.stop();}catch(_){}}};
+    r.onend=()=>{if(!stopped)stopped=true;resolve(pin.slice(0,6));};
+    r.onerror=()=>{if(!stopped)stopped=true;resolve(pin.slice(0,6));};
+    setTimeout(()=>{if(!stopped){stopped=true;try{r.stop();}catch(_){}}},timeoutMs);
+    try{r.start();}catch(_){resolve('');}
+  });
 }
 function setGlobe(cls){
   const g=document.getElementById('authGlobe');
   g.className='auth-globe'+(cls?' '+cls:'');
 }
 function setLbl(t){document.getElementById('authLbl').textContent=t;}
-function unlockApp(){
+function unlockApp(silent){
   clearInterval(vpId);
   document.getElementById('lockScreen').classList.add('hidden');
   document.getElementById('pinScreen').classList.add('hidden');
   document.getElementById('mainScreen').classList.remove('hidden');
   document.getElementById('cFab').style.display='flex';
   initApp();
-  setTimeout(()=>speak('Accès accordé. Bonjour Elton, GAIA est opérationnelle.'),600);
+  if(!silent)setTimeout(()=>speak('Accès accordé. Bonjour Elton, GAIA est opérationnelle.'),600);
+}
+// Si session 24h encore valide, déverrouille direct au boot
+function maybeAutoUnlock(){
+  if(isSessionValid()){unlockApp(true);return true;}
+  return false;
 }
 
 // ════════════════════════════════════════
@@ -929,15 +1205,18 @@ function updDots(){
   for(let i=0;i<6;i++){const d=document.getElementById('pd'+i);d.className='pin-dot'+(i<pinCur.length?' filled':'');}
   document.getElementById('pinErr').textContent='';
 }
-function validatePin(){
+async function validatePin(){
   if(pinSetting){
     if(!pinFirst){pinFirst=pinCur;pinCur='';document.getElementById('pinSub').textContent='Confirme ton code PIN';updDots();}
     else if(pinFirst===pinCur){
-      try{localStorage.setItem(PIN_KEY,pinCur);}catch(e){}
-      pinCur='';pinSetting=false;unlockApp();
+      const h=await sha256(pinCur);
+      storage.set(PIN_KEY,h);
+      pinCur='';pinSetting=false;startSession();unlockApp();
     }else{pinFirst='';pinCur='';document.getElementById('pinSub').textContent='Codes différents — recommence';pinErrAnim();}
   }else{
-    if(pinCur===localStorage.getItem(PIN_KEY)){unlockApp();}
+    const stored=storage.get(PIN_KEY);
+    const h=await sha256(pinCur);
+    if(h===stored){pinCur='';startSession();unlockApp();}
     else{pinCur='';document.getElementById('pinErr').textContent='Code incorrect';pinErrAnim();}
   }
 }
@@ -951,6 +1230,11 @@ function initApp(){
   buildWeek();renderSess();renderMsgs();renderRems();renderReps();
   setGreet();initDateTime();
   setInterval(rotOrb,7000);
+  // Modules avancés
+  renderWeight();renderBoutiques();renderFamily();
+  loadWeather();
+  updateEmailBadge();
+  setInterval(updateEmailBadge,5*60*1000);
 }
 function updClock(){const n=new Date();document.getElementById('nClock').textContent=p2(n.getHours())+':'+p2(n.getMinutes());}
 function setGreet(){const h=new Date().getHours();document.getElementById('greetSm').textContent=h<12?'BON MATIN':h<18?'BON APRÈS-MIDI':'BONSOIR';}
@@ -959,42 +1243,70 @@ let osIdx=0;
 function rotOrb(){document.getElementById('orbTxt').textContent=OST[osIdx++%OST.length];}
 
 // ════════════════════════════════════════
-// CLAUDE API
+// CLAUDE API + MÉMOIRE PERSISTANTE
 // ════════════════════════════════════════
-let hist=[];
+const HIST_KEY='gaia_hist_v2',HIST_MAX=30;
+let hist=storage.get(HIST_KEY,[]);
+function persistHist(){storage.set(HIST_KEY,hist.slice(-HIST_MAX));}
+
+// SYS dynamique avec contexte courant (heure, météo, poids, emails)
+function buildSys(){
+  const now=new Date();
+  const h=now.getHours();
+  const moment=h<6?'la nuit':h<12?'le matin':h<14?'midi':h<18?"l'après-midi":h<22?'le soir':'la nuit';
+  const days=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+  const months=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  let ctx=`\n\nCONTEXTE ACTUEL : nous sommes ${moment} (${p2(h)}h${p2(now.getMinutes())}), ${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}.`;
+  if(window.gaiaCtx.weather){const w=window.gaiaCtx.weather;ctx+=` Météo à ${w.city} : ${w.temp}°C, ${w.description}.`;}
+  if(window.gaiaCtx.unread)ctx+=` ${window.gaiaCtx.unread} email${window.gaiaCtx.unread>1?'s':''} non lu${window.gaiaCtx.unread>1?'s':''}.`;
+  return SYS+ctx;
+}
+
 async function claude(msg,sysOv){
   hist.push({role:'user',content:msg});
+  if(hist.length>HIST_MAX)hist=hist.slice(-HIST_MAX);
   let r;
-  try{r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(-14),system:sysOv||SYS})});}
+  try{r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(-14),system:sysOv||buildSys()})});}
   catch(networkErr){hist.pop();throw new Error('Pas de connexion réseau');}
   if(!r.ok){const e=await r.json().catch(()=>({}));hist.pop();throw new Error(e.error||`HTTP ${r.status}`);}
   const d=await r.json();
   const rep=d.content?.find(c=>c.type==='text')?.text||'Erreur de réponse.';
-  const clean=rep.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/#{1,3} /g,'').replace(/`{1,3}[^`]*`{1,3}/g,'').trim();
+  const clean=cleanMarkdown(rep);
   hist.push({role:'assistant',content:clean});
+  persistHist();
   return clean;
 }
 
 // ════════════════════════════════════════
-// ELEVENLABS TTS
+// ELEVENLABS TTS · Voix Jessica Anne Bogart
 // ════════════════════════════════════════
+const GAIA_VOICE='Jessica Anne Bogart';
+let cachedVoiceId=null;
+try{cachedVoiceId=localStorage.getItem('gaia_voice_id')||null;}catch(_){}
 let talking=false,curAu=null;
 async function speak(txt){
   if(!txt||talking)return;
-  const t=txt.length>280?txt.substring(0,280)+'…':txt;
+  const cleaned=cleanMarkdown(txt);
+  const t=cleaned.length>280?cleaned.substring(0,280)+'…':cleaned;
+  if(!t)return;
   try{
     talking=true;
-    const r=await fetch('/api/elevenlabs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})});
+    const payload=cachedVoiceId?{text:t,voiceId:cachedVoiceId}:{text:t,voiceName:GAIA_VOICE};
+    const r=await fetch('/api/elevenlabs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!r.ok)throw new Error('EL '+r.status);
     const data=await r.json();
     if(!data.audio)throw new Error('No audio');
+    if(data.voiceId&&data.voiceId!==cachedVoiceId){cachedVoiceId=data.voiceId;try{localStorage.setItem('gaia_voice_id',cachedVoiceId);}catch(_){}}
     const bytes=Uint8Array.from(atob(data.audio),c=>c.charCodeAt(0));
     const url=URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));
-    curAu=new Audio(url);
-    curAu.onended=()=>{talking=false;URL.revokeObjectURL(url);};
-    curAu.onerror=()=>{talking=false;URL.revokeObjectURL(url);spkFB(txt);};
-    await curAu.play();
-  }catch(e){console.warn('EL failed:',e.message);talking=false;spkFB(txt);}
+    // Attendre la fin du playback (important pour chaîner sur la SR)
+    return new Promise(resolve=>{
+      curAu=new Audio(url);
+      curAu.onended=()=>{talking=false;URL.revokeObjectURL(url);resolve();};
+      curAu.onerror=()=>{talking=false;URL.revokeObjectURL(url);spkFB(t);resolve();};
+      curAu.play().catch(()=>{talking=false;resolve();});
+    });
+  }catch(e){console.warn('EL failed:',e.message);talking=false;spkFB(t);}
 }
 function spkFB(txt){
   if(!window.speechSynthesis)return;
@@ -1036,6 +1348,11 @@ async function toggleVoice(){
     async()=>{
       isLstn=false;
       if(!ft){setOrb('idle');document.getElementById('orbLbl').textContent='APPUIE POUR PARLER';return;}
+      // Intent : lecture vocale des emails
+      if(isEmailIntent(ft)){
+        document.getElementById('trU').textContent=ft;
+        return readEmailsAloud();
+      }
       setOrb('thinking');document.getElementById('orbLbl').textContent='GAIA RÉFLÉCHIT...';
       try{
         const rep=await claude(ft);
@@ -1088,7 +1405,7 @@ function tChatVoice(){
 // ════════════════════════════════════════
 // VIEWS
 // ════════════════════════════════════════
-const VIEWS=['home','messages','sport','finance','emails','creative','reminders','autoreply'];
+const VIEWS=['home','messages','sport','finance','emails','creative','reminders','autoreply','family'];
 function gv(n){
   VIEWS.forEach(v=>{const e=document.getElementById('v'+v.charAt(0).toUpperCase()+v.slice(1));if(e)e.className='view'+(v===n?' show':'');});
   document.getElementById('scrl').scrollTop=0;
@@ -1105,16 +1422,46 @@ function closeSh2(e,id){if(e.target===document.getElementById(id))document.getEl
 let msgs=[];
 const PICO={WhatsApp:'💬',SMS:'📱',Instagram:'📸',Telegram:'✈️',iMessage:'🍎'};
 function initDateTime(){const n=new Date();n.setHours(n.getHours()+1);document.getElementById('mDate').value=n.toISOString().split('T')[0];document.getElementById('mTime').value=p2(n.getHours())+':00';}
-function schedMsg(){
+function isEmailIntent(t){
+  if(!t)return false;
+  const s=t.toLowerCase();
+  return /\b(lis|lit|lire|montre|montres|résume|resume|trie|tri|vérifie|verifie|check)\b.{0,20}\b(emails?|mails?|boîte|boite|messages?|inbox)\b/.test(s)
+    || /\b(mes\s+emails?|ma\s+boîte\s+mail|ma\s+boite\s+mail)\b/.test(s)
+    || /\bj'ai\s+(des\s+)?(emails?|mails?)\b/.test(s)
+    || /\bqui\s+m['' ]a\s+(écrit|envoyé|écris)\b/.test(s);
+}
+
+async function schedMsg(){
   const to=document.getElementById('mTo').value.trim();
   const txt=document.getElementById('mTxt').value.trim();
   const date=document.getElementById('mDate').value;
   const time=document.getElementById('mTime').value;
   const pl=document.getElementById('mPlat').value;
   if(!to||!txt||!date||!time){toast('Remplis tous les champs','warn');return;}
+  const when=new Date(`${date}T${time}`);
+  const isImmediate=when.getTime()-Date.now()<60000;
   msgs.push({to,txt,date,time,pl});renderMsgs();
   document.getElementById('mTo').value='';document.getElementById('mTxt').value='';
-  toast('Message programmé');
+
+  if(isImmediate){
+    if(pl==='WhatsApp'){
+      const num=to.replace(/[^0-9+]/g,'');
+      window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`,'_blank');
+      toast('WhatsApp ouvert');
+    }else if(pl==='SMS'||pl==='iMessage'){
+      // sms: protocol → ouvre l'app SMS native iOS
+      window.location.href=`sms:${to}${navigator.userAgent.match(/iPhone|iPad/)?'&':'?'}body=${encodeURIComponent(txt)}`;
+    }else{
+      // Web Share API natif (Instagram, Telegram, etc.)
+      const shared=await shareNative({title:`Message à ${to}`,text:txt});
+      if(!shared){
+        try{await navigator.clipboard.writeText(txt);toast('Message copié — colle-le dans '+pl);}
+        catch(_){toast('Message programmé');}
+      }
+    }
+  }else{
+    toast('Message programmé');
+  }
 }
 function renderMsgs(){
   const el=document.getElementById('msgList');el.innerHTML='';
@@ -1213,17 +1560,22 @@ function calcDrop(){
 }
 
 // ════════════════════════════════════════
-// EMAILS
+// EMAILS — liste + actions complètes
 // ════════════════════════════════════════
+let emailsCache=[];
+function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);}
+function cleanFrom(f){if(!f)return '';const m=String(f).match(/^([^<]+?)\s*<.+>$/);if(m)return m[1].replace(/^["']|["']$/g,'').trim();return String(f).split('@')[0];}
+
 async function loadEmails(){
   const btn=document.getElementById('emailLoadBtn');
   btn.textContent='⏳ CHARGEMENT...';btn.disabled=true;
   try{
-    const r=await fetch('/api/gmail?action=list&max=5');
+    const r=await fetch('/api/gmail?action=list&max=10');
     if(!r.ok)throw new Error('HTTP '+r.status);
     const data=await r.json();
     if(data.error)throw new Error(data.error);
-    renderEmails(data.messages||[]);
+    emailsCache=data.messages||[];
+    renderEmails(emailsCache);
   }catch(e){
     toast('Erreur Gmail: '+e.message,'err');
     btn.textContent='📧 CHARGER MES EMAILS';btn.disabled=false;
@@ -1232,34 +1584,117 @@ async function loadEmails(){
 function renderEmails(emails){
   const el=document.getElementById('emailList');el.innerHTML='';
   document.getElementById('emailTotal').textContent=emails.length;
-  const urgent=emails.filter(m=>m.priority==='high').length;
+  const urgent=emails.filter(m=>m.priority==='urgent'||m.priority==='high').length;
   const spam=emails.filter(m=>m.category==='spam').length;
   document.getElementById('emailUrgent').textContent=urgent;
   document.getElementById('emailSpam').textContent=spam;
   if(!emails.length){el.innerHTML='<div class="empty"><div class="empty-ico">📧</div>Aucun email</div>';return;}
   emails.forEach(m=>{
-    const d=document.createElement('div');d.className='email-card';
-    const catCls=m.category==='spam'?'badge-spam':m.priority==='high'?'badge-imp':'badge-ok';
-    const catLbl=m.category==='spam'?'SPAM':m.priority==='high'?'URGENT':'NORMAL';
+    const d=document.createElement('div');d.className='email-card';d.dataset.id=m.id;
+    const isUrgent=m.priority==='urgent'||m.priority==='high';
+    const catCls=m.category==='spam'?'badge-spam':isUrgent?'badge-imp':'badge-ok';
+    const catLbl=m.category==='spam'?'SPAM':isUrgent?'URGENT':'NORMAL';
     d.innerHTML=`
-      <div class="email-from">${m.from||'Inconnu'}</div>
-      <div class="email-subj">${m.subject||'(sans sujet)'}</div>
-      <div class="email-snip">${(m.snippet||'').substring(0,80)}...</div>
+      <div class="email-from">${escapeHTML(cleanFrom(m.from)||'Inconnu')}</div>
+      <div class="email-subj">${escapeHTML(m.subject||'(sans sujet)')}</div>
+      <div class="email-snip">${escapeHTML((m.snippet||'').substring(0,90))}...</div>
       <div class="email-foot">
-        <div class="email-date">${m.date||''}</div>
+        <div class="email-date">${escapeHTML(m.date||'')}</div>
         <span class="badge ${catCls}">${catLbl}</span>
       </div>
-      ${m.suggestedReply?`<button class="btn-cyber" style="margin-top:8px;font-size:8px;padding:7px" onclick="replyEmail(this,'${encodeURIComponent(m.suggestedReply)}')">🤖 RÉPONDRE AVEC GAIA</button>`:''}`;
+      <div class="email-acts">
+        ${m.suggestedReply?`<button onclick="emailReply('${m.id}')">🤖 RÉPONDRE</button>`:''}
+        <button onclick="emailArchive('${m.id}',this)">ARCHIVER</button>
+        <button class="danger" onclick="emailTrash('${m.id}',this)">SUPPR</button>
+        <button class="read" onclick="readOneEmail('${m.id}')">🔊</button>
+      </div>`;
     el.appendChild(d);
   });
   document.getElementById('emailLoadBtn').textContent='🔄 ACTUALISER';
   document.getElementById('emailLoadBtn').disabled=false;
 }
-function replyEmail(btn,encodedReply){
-  const reply=decodeURIComponent(encodedReply);
-  btn.textContent='✅ RÉPONSE COPIÉE';
-  navigator.clipboard?.writeText(reply).catch(()=>{});
-  toast('Réponse copiée dans le presse-papiers');
+
+async function emailReply(id){
+  const m=emailsCache.find(x=>x.id===id);if(!m||!m.suggestedReply)return toast('Pas de réponse','warn');
+  try{
+    const r=await fetch('/api/gmail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reply',id,body:m.suggestedReply})});
+    if(!r.ok){const e=await r.json();throw new Error(e.error||'erreur');}
+    toast('Email envoyé ✓');
+    document.querySelector(`.email-card[data-id="${id}"]`)?.style?.setProperty('opacity','.4');
+  }catch(e){toast('Erreur: '+e.message,'err');}
+}
+async function emailArchive(id,btn){
+  btn.disabled=true;btn.textContent='...';
+  try{
+    const r=await fetch('/api/gmail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'archive',id})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    document.querySelector(`.email-card[data-id="${id}"]`)?.style?.setProperty('opacity','.3');
+    btn.textContent='ARCHIVÉ';toast('Archivé');
+    updateEmailBadge();
+  }catch(e){btn.disabled=false;btn.textContent='ARCHIVER';toast('Erreur: '+e.message,'err');}
+}
+async function emailTrash(id,btn){
+  if(!confirm('Supprimer (mettre à la corbeille) ?'))return;
+  btn.disabled=true;btn.textContent='...';
+  try{
+    const r=await fetch('/api/gmail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'trash',id})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    document.querySelector(`.email-card[data-id="${id}"]`)?.style?.setProperty('opacity','.2');
+    btn.textContent='SUPPRIMÉ';toast('Supprimé');
+    updateEmailBadge();
+  }catch(e){btn.disabled=false;btn.textContent='SUPPR';toast('Erreur: '+e.message,'err');}
+}
+async function readOneEmail(id){
+  const m=emailsCache.find(x=>x.id===id);if(!m){toast('Email introuvable','warn');return;}
+  setOrb('speaking');
+  document.getElementById('transcript').classList.add('show');
+  document.getElementById('trU').textContent=`Lis l'email de ${cleanFrom(m.from)}`;
+  const text=`Email de ${cleanFrom(m.from)}, sujet : ${m.subject}. Catégorie ${m.category}, priorité ${m.priority}. ${m.snippet||''} ${m.suggestedReply?`Réponse suggérée : ${m.suggestedReply}`:''}`;
+  document.getElementById('trG').textContent=cleanMarkdown(text);
+  await speak(text);setOrb('idle');
+}
+
+// Badge unread (rapide, pas de Claude)
+async function updateEmailBadge(){
+  try{
+    const r=await fetch('/api/gmail?action=count');if(!r.ok)return;
+    const d=await r.json();const n=d.unread||0;
+    window.gaiaCtx.unread=n;
+    const mb=document.getElementById('emailModBadge');
+    const vb=document.getElementById('emailVoiceBadge');
+    if(n>0){if(mb){mb.style.display='inline-block';mb.textContent=n>99?'99+':String(n);}if(vb){vb.style.display='inline-block';vb.textContent='('+n+')';}}
+    else{if(mb)mb.style.display='none';if(vb)vb.style.display='none';}
+  }catch(e){}
+}
+
+// Lecture vocale d'un résumé global de la boîte
+async function readEmailsAloud(){
+  setOrb('thinking');document.getElementById('orbLbl').textContent='GAIA LIT TA BOÎTE...';
+  document.getElementById('transcript').classList.add('show');
+  document.getElementById('trU').textContent='Lis mes emails';
+  try{
+    const r=await fetch('/api/gmail?action=list&max=8');
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'erreur');
+    emailsCache=d.messages||[];
+    let summary;
+    if(!emailsCache.length){summary="Aucun email non lu. Belle discipline.";}
+    else{
+      const urg=emailsCache.filter(m=>m.priority==='urgent'||m.priority==='high');
+      const spam=emailsCache.filter(m=>m.category==='spam').length;
+      const utiles=emailsCache.length-spam;
+      summary=`Tu as ${utiles} email${utiles>1?'s':''} utile${utiles>1?'s':''}. `;
+      if(urg.length){summary+=`${urg.length} urgent${urg.length>1?'s':''}. Le plus important vient de ${cleanFrom(urg[0].from)}, sujet : ${urg[0].subject}. `;}
+      else if(emailsCache.length){const m=emailsCache[0];summary+=`Le plus récent vient de ${cleanFrom(m.from)}, sujet : ${m.subject}. `;}
+      if(spam)summary+=`Plus ${spam} spam${spam>1?'s':''} à archiver. `;
+      summary+=`Veux-tu les détails ou que je réponde ?`;
+    }
+    document.getElementById('trG').textContent=summary;
+    setOrb('speaking');document.getElementById('orbLbl').textContent='GAIA RÉPOND...';
+    gv('emails');renderEmails(emailsCache);
+    await speak(summary);
+    setOrb('idle');document.getElementById('orbLbl').textContent='APPUIE POUR PARLER';
+  }catch(e){setOrb('idle');toast('Erreur: '+e.message,'err');}
 }
 
 // ════════════════════════════════════════
@@ -1330,6 +1765,179 @@ function renderReps(){
 }
 
 // ════════════════════════════════════════
+// MÉTÉO
+// ════════════════════════════════════════
+const WX_ICON={Clear:'☀️',Clouds:'☁️',Rain:'🌧️',Drizzle:'🌦️',Thunderstorm:'⛈️',Snow:'❄️',Mist:'🌫️',Fog:'🌫️',Haze:'🌫️'};
+async function loadWeather(){
+  const box=document.getElementById('wxBox');if(!box)return;
+  try{
+    const geo=await getLocation();
+    const r=await fetch(`/api/weather?lat=${geo.lat}&lon=${geo.lon}`);
+    const w=await r.json();
+    if(!r.ok)throw new Error(w.error||'météo');
+    window.gaiaCtx.weather=w;
+    box.innerHTML=`<div class="wx-card">
+      <div class="wx-emoji">${WX_ICON[w.main]||'🌤️'}</div>
+      <div class="wx-info">
+        <div class="wx-temp">${w.temp}°<span style="font-size:14px;opacity:.55">C</span></div>
+        <div class="wx-desc">${w.description} · ${w.city}</div>
+        <div class="wx-meta">RESSENTI ${w.feels}° · VENT ${w.wind} KM/H · HUM ${w.humidity}%</div>
+      </div>
+    </div>`;
+  }catch(e){box.innerHTML='';}
+}
+
+// ════════════════════════════════════════
+// BRIEF DU JOUR (vocal)
+// ════════════════════════════════════════
+async function readBriefingAloud(){
+  setOrb('thinking');document.getElementById('orbLbl').textContent='GAIA PRÉPARE TON BRIEF...';
+  document.getElementById('transcript').classList.add('show');
+  document.getElementById('trU').textContent='Mon brief du jour';
+  try{
+    let parts=[];
+    const w=window.gaiaCtx.weather;if(w)parts.push(`Météo : ${w.temp}° à ${w.city}, ${w.description}.`);
+    const remCount=rems.filter(r=>!r.done).length;
+    if(remCount)parts.push(`${remCount} rappel${remCount>1?'s':''} en cours.`);
+    const today=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'][new Date().getDay()];
+    const todaySess=sess.filter(s=>s.day.toLowerCase()===today);
+    if(todaySess.length)parts.push(`Sport aujourd'hui : ${todaySess.map(s=>s.type+' à '+s.time).join(', ')}.`);
+    if(window.gaiaCtx.unread)parts.push(`${window.gaiaCtx.unread} email${window.gaiaCtx.unread>1?'s':''} non lu${window.gaiaCtx.unread>1?'s':''}.`);
+    const ctx=parts.length?`État du jour : ${parts.join(' ')} `:'';
+    const rep=await claude(`${ctx}Donne-moi un brief matinal motivant, 4 phrases max, droit au but. Une priorité concrète pour aujourd'hui en lien avec mes objectifs.`);
+    document.getElementById('trG').textContent=rep;
+    setOrb('speaking');document.getElementById('orbLbl').textContent='GAIA RÉPOND...';
+    await speak(rep);
+    setOrb('idle');document.getElementById('orbLbl').textContent='APPUIE POUR PARLER';
+  }catch(e){setOrb('idle');toast('Erreur: '+e.message,'err');}
+}
+
+// ════════════════════════════════════════
+// TIMER SPORT
+// ════════════════════════════════════════
+let timerStart=0,timerElapsed=0,timerIv=null;
+function timerToggle(){
+  const btn=document.getElementById('timerStart');
+  const disp=document.getElementById('timerDisp');
+  if(timerIv){clearInterval(timerIv);timerIv=null;timerElapsed+=Date.now()-timerStart;btn.textContent='REPRENDRE';btn.className='';disp.classList.remove('run');return;}
+  timerStart=Date.now();disp.classList.add('run');
+  btn.textContent='PAUSE';btn.className='pause';
+  timerIv=setInterval(()=>{
+    const ms=timerElapsed+(Date.now()-timerStart);
+    const s=Math.floor(ms/1000),m=Math.floor(s/60);
+    disp.textContent=p2(m)+':'+p2(s%60);
+  },200);
+}
+function timerReset(){if(timerIv){clearInterval(timerIv);timerIv=null;}timerElapsed=0;document.getElementById('timerDisp').textContent='00:00';document.getElementById('timerDisp').classList.remove('run');const b=document.getElementById('timerStart');b.textContent='DÉMARRER';b.className='';}
+
+// ════════════════════════════════════════
+// SUIVI POIDS
+// ════════════════════════════════════════
+const WT_KEY='gaia_weights',WEIGHT_TARGET=92;
+let weightLog=storage.get(WT_KEY,[{kg:109,date:Date.now()}]);
+function renderWeight(){
+  const last=weightLog[weightLog.length-1];if(!last)return;
+  window.gaiaCtx.weight=last.kg;
+  const wtNow=document.getElementById('wtNow');if(wtNow)wtNow.innerHTML=last.kg+'<small>kg</small>';
+  const start=weightLog[0].kg,lost=Math.max(0,start-last.kg),total=start-WEIGHT_TARGET;
+  const pct=total>0?Math.min(100,(lost/total)*100):0;
+  ['wtFill','wtFill2'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.width=pct.toFixed(0)+'%';});
+  const txt=document.getElementById('wtPctTxt');if(txt)txt.textContent=pct.toFixed(0)+'%';
+  const stats=document.getElementById('wtStats');if(stats)stats.textContent=`${lost.toFixed(1)} KG PERDUS · ${weightLog.length} PESÉE${weightLog.length>1?'S':''}`;
+}
+function addWeight(){
+  const v=parseFloat(document.getElementById('wtInput').value);
+  if(!v||v<40||v>250){toast('Poids invalide','warn');return;}
+  weightLog.push({kg:v,date:Date.now()});storage.set(WT_KEY,weightLog);
+  document.getElementById('wtInput').value='';renderWeight();toast('Poids enregistré');
+}
+
+// ════════════════════════════════════════
+// BOUTIQUES (FINANCE)
+// ════════════════════════════════════════
+const BT_KEY='gaia_boutiques';
+let boutiques=storage.get(BT_KEY,[]);
+function renderBoutiques(){
+  const list=document.getElementById('btList');if(!list)return;
+  if(!boutiques.length){list.innerHTML='<div class="empty"><div class="empty-ico">🏪</div>Aucune boutique. Ajoute-en pour suivre tes revenus.</div>';}
+  else{
+    list.innerHTML='';
+    boutiques.forEach((b,i)=>{
+      const pct=b.goal>0?Math.min(100,(b.rev/b.goal)*100):0;
+      const c=document.createElement('div');c.className='bt-c';
+      c.innerHTML=`<div class="bt-h"><div class="bt-name">${b.name}</div><div class="bt-rev">${(+b.rev).toLocaleString('fr-FR')} €</div></div>
+        <div class="bt-bar"><div class="bt-fill" style="width:${pct.toFixed(0)}%"></div></div>
+        <div class="bt-meta">${b.niche||'—'} · ${pct.toFixed(0)}% DE ${(+b.goal).toLocaleString('fr-FR')} € <span style="float:right;color:var(--red,#ff0036);cursor:pointer" onclick="delBoutique(${i})">⊖</span></div>`;
+      list.appendChild(c);
+    });
+  }
+  // Update projection
+  const monthly=boutiques.reduce((a,b)=>a+(+b.rev||0),0);
+  const monthsLeft=Math.max(0,Math.round((new Date('2026-12-31')-new Date())/(1000*60*60*24*30.4)));
+  const cumul=monthly*monthsLeft;
+  const pa=document.getElementById('projAmount');
+  if(pa){
+    pa.textContent=cumul.toLocaleString('fr-FR')+' €';
+    const pct=Math.min(100,(cumul/1000000)*100);
+    document.getElementById('projFill').style.width=pct.toFixed(1)+'%';
+    document.getElementById('projPct').textContent=`${pct.toFixed(1)}% · ${monthly.toLocaleString('fr-FR')} €/MOIS · ${monthsLeft} MOIS RESTANTS`;
+  }
+}
+function addBoutique(){
+  const name=document.getElementById('btName').value.trim();
+  if(!name){toast('Nom requis','warn');return;}
+  boutiques.push({name,niche:document.getElementById('btNiche').value.trim(),rev:+document.getElementById('btRev').value||0,goal:+document.getElementById('btGoal').value||10000,createdAt:Date.now()});
+  storage.set(BT_KEY,boutiques);
+  ['btName','btNiche','btRev'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('btSheet').classList.remove('open');
+  renderBoutiques();toast('Boutique ajoutée');
+}
+function delBoutique(i){boutiques.splice(i,1);storage.set(BT_KEY,boutiques);renderBoutiques();}
+
+// ════════════════════════════════════════
+// FAMILLE
+// ════════════════════════════════════════
+const FAM_KEY='gaia_family';
+let famEvents=storage.get(FAM_KEY,[
+  {ico:'💍',title:'Mariage',date:'2027-06-01'},
+  {ico:'👶',title:'Naissance bébé 2',date:'2026-08-01'},
+]);
+function renderFamily(){
+  const list=document.getElementById('famEvents');if(!list)return;
+  if(!famEvents.length){list.innerHTML='<div class="empty"><div class="empty-ico">❤️</div>Aucun événement</div>';return;}
+  list.innerHTML='';
+  famEvents.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach((e,i)=>{
+    const days=Math.ceil((new Date(e.date)-Date.now())/(1000*60*60*24));
+    const cnt=days>0?`DANS ${days} JOURS`:days===0?"AUJOURD'HUI !":`IL Y A ${-days} JOURS`;
+    const dStr=new Date(e.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+    const d=document.createElement('div');d.className='fam-event';
+    d.innerHTML=`<div class="fam-ico">${e.ico||'❤️'}</div><div class="fam-meta"><div class="fam-title">${e.title}</div><div class="fam-date">${dStr}</div><div class="fam-count">${cnt}</div></div><div style="color:var(--red,#ff0036);cursor:pointer;font-size:18px" onclick="delFamily(${i})">⊖</div>`;
+    list.appendChild(d);
+  });
+}
+function addFamily(){
+  const t=document.getElementById('famTitle').value.trim();
+  const d=document.getElementById('famDate').value;
+  if(!t||!d){toast('Titre et date requis','warn');return;}
+  famEvents.push({ico:document.getElementById('famType').value,title:t,date:d});
+  storage.set(FAM_KEY,famEvents);
+  document.getElementById('famTitle').value='';document.getElementById('famDate').value='';
+  renderFamily();toast('Événement ajouté');
+}
+function delFamily(i){famEvents.splice(i,1);storage.set(FAM_KEY,famEvents);renderFamily();}
+async function famAskGaia(topic){
+  const out=document.getElementById('famAdvice');
+  out.className='cre-out show';out.textContent='✨ GAIA prépare un plan...';
+  try{
+    const prompt=topic==='mariage'?
+      "Donne-moi un plan concret de préparation pour mon mariage prévu en 2027. 6 étapes-clés à entamer maintenant, en français, sans markdown, phrases courtes.":
+      "Donne-moi un plan concret pour préparer l'arrivée de mon 2e bébé prévu mi-2026. 6 priorités à anticiper, en français, sans markdown, phrases courtes.";
+    const rep=await claude(prompt);
+    out.textContent=rep;speak(rep.substring(0,260));
+  }catch(e){out.textContent='Erreur : '+e.message;}
+}
+
+// ════════════════════════════════════════
 // UTILS
 // ════════════════════════════════════════
 function toast(msg,t='ok'){
@@ -1340,6 +1948,9 @@ function toast(msg,t='ok'){
 function dl(ms){return new Promise(r=>setTimeout(r,ms));}
 function p2(n){return String(n).padStart(2,'0');}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+
+// Boot : si session 24h valide, déverrouille direct
+window.addEventListener('DOMContentLoaded',()=>{maybeAutoUnlock();});
 </script>
 </body>
 </html>
