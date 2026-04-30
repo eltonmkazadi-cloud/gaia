@@ -304,6 +304,14 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
+      if (op === 'trash') {
+        await gmailFetch(token, `/users/me/messages/${body.id}/trash`, {
+          method: 'POST',
+          body: JSON.stringify({}),
+        });
+        return res.status(200).json({ ok: true });
+      }
+
       return res.status(400).json({ error: 'action inconnue' });
     }
 
