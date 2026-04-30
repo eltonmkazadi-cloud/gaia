@@ -84,8 +84,8 @@ De: ${from}
 Sujet: ${subject}
 Corps: ${body.substring(0, 1500)}
 
-Réponds STRICTEMENT en JSON :
-{"category":"client|fournisseur|spam|admin|perso|other","priority":"urgent|normal|low","suggestedReply":"..."}`;
+Catégories : client, fournisseur, spam, admin, perso, other.
+Priorités : urgent, normal, low.`;
 
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -98,17 +98,39 @@ Réponds STRICTEMENT en JSON :
       model: 'claude-sonnet-4-6',
       max_tokens: 400,
       thinking: { type: 'disabled' },
-      output_config: { effort: 'low' },
+      output_config: {
+        effort: 'low',
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              category: {
+                type: 'string',
+                enum: ['client', 'fournisseur', 'spam', 'admin', 'perso', 'other'],
+              },
+              priority: {
+                type: 'string',
+                enum: ['urgent', 'normal', 'low'],
+              },
+              suggestedReply: { type: 'string' },
+            },
+            required: ['category', 'priority', 'suggestedReply'],
+          },
+        },
+      },
       messages: [{ role: 'user', content: prompt }],
     }),
   });
   const d = await r.json();
-  const txt = d.content?.find((c) => c.type === 'text')?.text || '{}';
-  const m = txt.match(/\{[\s\S]*\}/);
+  const fallback = { category: 'other', priority: 'normal', suggestedReply: '' };
+  if (d.stop_reason === 'refusal' || d.stop_reason === 'max_tokens') return fallback;
+  const txt = d.content?.find((c) => c.type === 'text')?.text || '';
   try {
-    return JSON.parse(m ? m[0] : '{}');
+    return JSON.parse(txt);
   } catch {
-    return { category: 'other', priority: 'normal', suggestedReply: '' };
+    return fallback;
   }
 }
 
