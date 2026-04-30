@@ -431,7 +431,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif
       <div class="edot" id="e0"></div><div class="edot" id="e1"></div><div class="edot" id="e2"></div>
     </div>
     <div class="auth-label" id="authLbl">Appuie pour déverrouiller</div>
-    <div class="auth-hint">GAIA ne reconnaît que ta voix, Elton</div>
+    <div class="auth-hint">Voix + PIN vocal · Elton seulement</div>
     <div class="auth-switcher">
       <button class="auth-tab active" onclick="switchAuth('voice')">🎙️ Voix</button>
       <button class="auth-tab" onclick="switchAuth('pin')">🔢 PIN</button>
@@ -888,6 +888,52 @@ async function handlePinKey(k){
   }
 }
 
+// ── PIN VOCAL : parser + capture ────────────────────
+// Convertit "un deux trois quatre cinq six" → "123456"
+// Tolère les transcriptions mixtes "1 2 trois 4 5 6", "douze 34 56" (digits seulement)
+function parseFrenchDigits(transcript){
+  if(!transcript)return '';
+  const map={
+    'zéro':'0','zero':'0',
+    'un':'1','une':'1',
+    'deux':'2',
+    'trois':'3',
+    'quatre':'4',
+    'cinq':'5',
+    'six':'6',
+    'sept':'7',
+    'huit':'8',
+    'neuf':'9',
+  };
+  let s=String(transcript).toLowerCase();
+  for(const [word,digit] of Object.entries(map)){
+    s=s.replace(new RegExp(`\\b${word}\\b`,'g'),' '+digit+' ');
+  }
+  const matches=s.match(/\d/g)||[];
+  return matches.join('');
+}
+
+// Capture la dictée d'un PIN. Resolve avec la string de chiffres parsée.
+function captureSpokenPin(timeoutMs=6500){
+  return new Promise((resolve)=>{
+    if(!SR){resolve('');return;}
+    let pin='';
+    let stopped=false;
+    const r=new SR();
+    r.lang='fr-FR';r.continuous=false;r.interimResults=true;
+    r.onresult=e=>{
+      const t=Array.from(e.results).map(x=>x[0].transcript).join('');
+      pin=parseFrenchDigits(t);
+      // Si on a déjà 6 chiffres, on coupe court
+      if(pin.length>=6&&!stopped){stopped=true;try{r.stop();}catch(_){}}
+    };
+    r.onend=()=>{if(!stopped){stopped=true;}resolve(pin.slice(0,6));};
+    r.onerror=()=>{if(!stopped){stopped=true;}resolve(pin.slice(0,6));};
+    setTimeout(()=>{if(!stopped){stopped=true;try{r.stop();}catch(_){}}},timeoutMs);
+    try{r.start();}catch(e){resolve('');}
+  });
+}
+
 // ── VOICEPRINT ──────────────────────────────────────
 const VP_KEY='gaia_vp_v2';
 let vp=null,enrollArr=[],enrollIdx=0,authBusy=false;
@@ -953,15 +999,91 @@ async function doEnroll(){
   try{localStorage.setItem(VP_KEY,JSON.stringify(vp));}catch(e){}
   setCirc('granted','🎉');setLbl('Voix enregistrée !');
   document.getElementById('eDots').style.display='none';
-  await dl(1000);unlockApp();
+  await dl(1000);
+  // Enchaîne sur la création du PIN par dictée vocale
+  if(!storage.get(PIN_HASH_KEY)){
+    return setupPinByVoice();
+  }
+  unlockApp();
 }
 async function doVerify(){
-  setCirc('listening','👂');setLbl('Parle maintenant...');vpAnim=true;
-  try{const f=await capFeatures(2500);vpAnim=false;setCirc('verifying','⚙️');setLbl('Vérification...');await dl(900);
+  // Étape 1 — biométrie vocale
+  setCirc('listening','👂');setLbl('Parle maintenant…');vpAnim=true;
+  let voiceOk=false;
+  try{
+    const f=await capFeatures(2500);vpAnim=false;
+    setCirc('verifying','⚙️');setLbl('Vérification voix…');
+    await dl(700);
     const sim=cosSim(f,vp);
-    if(sim>=SIM_THR){setCirc('granted','✅');setLbl('Voix reconnue — Accès accordé');await dl(700);unlockApp();}
-    else{setCirc('denied','🚫');setLbl('Voix non reconnue — Réessaie');await dl(1500);setCirc('','🔒');}
-  }catch(e){vpAnim=false;setLbl('Micro indisponible');await dl(1000);bypass();}
+    voiceOk=sim>=SIM_THR;
+  }catch(e){
+    vpAnim=false;setLbl('Micro indisponible');await dl(900);bypass();return;
+  }
+  if(!voiceOk){
+    setCirc('denied','🚫');setLbl('Voix non reconnue');
+    await dl(1300);setCirc('','🔒');setLbl('Appuie pour réessayer');
+    return;
+  }
+
+  // Étape 2 — PIN demandé de vive voix
+  const stored=storage.get(PIN_HASH_KEY);
+  if(!stored){
+    // Cas : voix enrôlée mais pas de PIN (état legacy) → on en crée un par voix
+    return setupPinByVoice();
+  }
+  setCirc('verifying','🔢');setLbl('Voix OK · Donne ton PIN');
+  try{await speak('Donne-moi ton PIN, Elton.');}catch(_){}
+  setCirc('listening','🔢');setLbl("J'écoute le PIN…");
+  const spoken=await captureSpokenPin(6500);
+  if(spoken.length!==6){
+    setCirc('denied','🚫');
+    setLbl(spoken.length?`${spoken.length}/6 chiffres reçus`:'Aucun chiffre détecté');
+    await dl(1500);
+    setCirc('','🔒');
+    switchAuth('pin'); // fallback clavier
+    return;
+  }
+  const hash=await sha256(spoken);
+  if(hash===stored){
+    setCirc('granted','✅');setLbl('Voix + PIN OK');
+    await dl(500);
+    unlockApp();
+  }else{
+    setCirc('denied','🚫');setLbl('PIN incorrect');
+    await dl(1300);
+    setCirc('','🔒');
+    switchAuth('pin'); // fallback clavier
+  }
+}
+
+// Enregistrement initial du PIN par dictée
+async function setupPinByVoice(){
+  setCirc('listening','🔢');setLbl('Choisis ton PIN à 6 chiffres');
+  try{await speak('Maintenant, choisis ton PIN à 6 chiffres et dis-le-moi.');}catch(_){}
+  let first='';
+  for(let tries=0;tries<3;tries++){
+    setLbl('Dis 6 chiffres…');
+    first=await captureSpokenPin(7500);
+    if(first.length===6)break;
+    setLbl(`6 chiffres requis (reçu ${first.length})`);
+    await dl(1000);
+  }
+  if(first.length!==6){
+    setLbl('Configure ton PIN au clavier');
+    await dl(900);switchAuth('pin');return;
+  }
+  setLbl('Répète pour confirmer');
+  try{await speak('Répète-le pour confirmer.');}catch(_){}
+  const second=await captureSpokenPin(7500);
+  if(second!==first){
+    setLbl('PIN différent. Configure au clavier.');
+    await dl(1100);switchAuth('pin');return;
+  }
+  const hash=await sha256(first);
+  storage.set(PIN_HASH_KEY,hash);
+  setCirc('granted','🎉');setLbl('Voix + PIN enregistrés !');
+  await dl(900);
+  unlockApp();
 }
 function setCirc(cls,ico){const c=document.getElementById('authCirc');c.className='auth-circle'+(cls?' '+cls:'');c.textContent=ico;}
 function setLbl(t){document.getElementById('authLbl').textContent=t;}
@@ -1121,10 +1243,14 @@ async function speak(txt){
     }
     const bytes=Uint8Array.from(atob(data.audio),c=>c.charCodeAt(0));
     const url=URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));
-    curAu=new Audio(url);
-    curAu.onended=()=>{talking=false;URL.revokeObjectURL(url);};
-    curAu.onerror=()=>{talking=false;};
-    await curAu.play();
+    // Promise qui résout quand le playback est VRAIMENT terminé (important pour
+    // chaîner sur la reconnaissance vocale sans capturer la voix de GAIA)
+    return new Promise((resolve)=>{
+      curAu=new Audio(url);
+      curAu.onended=()=>{talking=false;URL.revokeObjectURL(url);resolve();};
+      curAu.onerror=()=>{talking=false;resolve();};
+      curAu.play().catch(()=>{talking=false;resolve();});
+    });
   }catch(e){talking=false;spkFB(t);}
 }
 function spkFB(txt){
