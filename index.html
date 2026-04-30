@@ -120,6 +120,42 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif
 .t-cur{display:inline-block;width:2px;height:14px;background:var(--blue);animation:tcBlink .7s infinite;vertical-align:middle}
 @keyframes tcBlink{0%,100%{opacity:1}50%{opacity:0}}
 
+/* ORB QUICK ACTIONS */
+.orb-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px;padding:0 20px}
+.orb-action-btn{padding:8px 14px;border-radius:18px;background:var(--inset);border:.5px solid var(--sep);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.orb-action-btn:active{opacity:.7;transform:scale(.96)}
+.orb-action-btn.urgent{background:rgba(255,59,48,.1);border-color:rgba(255,59,48,.3);color:var(--red)}
+
+/* EMAIL CARDS */
+.em-c{background:var(--card);border-radius:var(--r-md);box-shadow:var(--sh-sm);padding:14px;margin-bottom:10px;animation:slideD .25s ease}
+.em-h{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.em-i{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.em-i.client{background:rgba(0,122,255,.12)}
+.em-i.fournisseur{background:rgba(255,149,0,.12)}
+.em-i.spam{background:rgba(142,142,147,.18)}
+.em-i.admin{background:rgba(50,173,230,.12)}
+.em-i.perso{background:rgba(255,45,85,.12)}
+.em-i.other{background:rgba(175,82,222,.12)}
+.em-meta{flex:1;min-width:0}
+.em-from{font-size:14px;font-weight:600;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.em-subject{font-size:13px;color:var(--text2);margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.em-date{font-size:11px;color:var(--muted);text-align:right;flex-shrink:0;padding-top:2px}
+.em-prio{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px;margin-top:6px}
+.em-prio.urgent{background:rgba(255,59,48,.13);color:var(--red)}
+.em-prio.normal{background:rgba(142,142,147,.15);color:var(--muted)}
+.em-prio.low{background:rgba(52,199,89,.12);color:var(--green)}
+.em-snippet{font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0 46px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.em-reply{margin:10px 0 0 46px;padding:10px 12px;background:var(--inset);border-radius:10px;font-size:13px;line-height:1.5;color:var(--text2);border-left:2px solid var(--blue)}
+.em-actions{display:flex;gap:8px;margin:10px 0 0 46px}
+.em-act{flex:1;padding:9px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+.em-act:active{opacity:.8;transform:scale(.98)}
+.em-act.reply{background:var(--blue);color:#fff}
+.em-act.archive{background:var(--inset);color:var(--text)}
+.em-act:disabled{opacity:.5;cursor:not-allowed}
+
+/* MODULE BADGE */
+.mod-badge{display:inline-block;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:6px;min-width:18px;text-align:center}
+
 /* SECTIONS */
 .sh{padding:0 20px 8px;display:flex;align-items:baseline;justify-content:space-between}
 .sh-t{font-size:20px;font-weight:700;letter-spacing:-.4px}
@@ -341,6 +377,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif
         <div class="orb-lbl" id="oLbl">Appuie pour parler</div>
         <div class="orb-txt" id="oTxt"></div>
       </div>
+      <div class="orb-actions">
+        <button class="orb-action-btn" id="emailVoiceBtn" onclick="readEmailsAloud()">📧 <span>Lis mes emails</span> <span id="emailVoiceBadge" style="display:none;margin-left:2px"></span></button>
+      </div>
 
       <div class="tr-card" id="trCard">
         <div class="tr-row"><div class="tr-role">Toi</div><div class="tr-txt" id="trU"></div></div>
@@ -356,6 +395,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif
 
       <div class="sh"><div class="sh-t">Modules</div></div>
       <div class="mod-grid">
+        <div class="mod-c mod-blue" onclick="gv('emails')"><div class="mod-ico">📧</div><div class="mod-nm">Emails<span id="emailModBadge" class="mod-badge" style="display:none">0</span></div><div class="mod-ds">Trier & répondre</div></div>
         <div class="mod-c mod-blue" onclick="gv('messages')"><div class="mod-ico">📨</div><div class="mod-nm">Messages</div><div class="mod-ds">Programmer & automatiser</div></div>
         <div class="mod-c mod-red" onclick="gv('sport')"><div class="mod-ico">⚡</div><div class="mod-nm">Sport</div><div class="mod-ds">Programme & calculs</div></div>
         <div class="mod-c mod-green" onclick="gv('finance')"><div class="mod-ico">💰</div><div class="mod-nm">Finance</div><div class="mod-ds">Objectif 1M€ · 2026</div></div>
@@ -475,19 +515,26 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif
       <div class="ls" id="repList"></div>
       <div style="height:20px"></div>
 
-      <div class="sh"><div class="sh-t" style="font-size:17px">Boîte Gmail</div><div class="sh-a" onclick="loadGmail()">⟳ Trier</div></div>
-      <div class="fsec">
-        <button class="btn-act gr" onclick="loadGmail()">Trier mes emails avec GAIA 📧</button>
-      </div>
-      <div style="height:12px"></div>
-      <div class="ls" id="gmailList"></div>
-      <div style="height:16px"></div>
-
       <div class="sh"><div class="sh-t" style="font-size:17px">Notifications Push</div></div>
       <div class="fsec">
         <button class="btn-act" onclick="enablePush()">Activer les notifications push 🔔</button>
       </div>
       <div style="height:12px"></div>
+    </div>
+
+    <!-- EMAILS -->
+    <div id="vEmails" style="display:none">
+      <div class="sh" style="padding-top:16px">
+        <div class="sh-t">Emails</div>
+        <div class="sh-a" onclick="gv('home')">‹ Retour</div>
+      </div>
+      <div class="fsec">
+        <button class="btn-act gr" onclick="loadEmails()">📧 Trier ma boîte avec GAIA</button>
+      </div>
+      <div style="height:14px"></div>
+      <div style="padding:0 16px" id="emailsHeader"></div>
+      <div style="padding:0 16px" id="emailsList"></div>
+      <div style="height:16px"></div>
     </div>
 
   </div><!-- /scroll -->
@@ -656,6 +703,9 @@ function initApp(){
   buildWeek();renderSess();renderMsgs();renderRems();renderReps();
   setGreet();initDateTime();
   setInterval(rotOrb,7000);
+  // Compteur d'emails non lus en background (rapide, pas de Claude)
+  updateEmailBadge();
+  setInterval(updateEmailBadge,5*60*1000);
 }
 function updClock(){const n=new Date();document.getElementById('nClock').textContent=p2(n.getHours())+':'+p2(n.getMinutes());}
 function setGreet(){const h=new Date().getHours();document.getElementById('gSm').textContent=h<12?'Bonjour':h<18?'Bon après-midi':'Bonsoir';}
@@ -730,6 +780,14 @@ async function toggleVoice(){
     async()=>{
       isLstn=false;
       if(!ft){setOrb('idle');document.getElementById('oLbl').textContent='Appuie pour parler';return;}
+      // Intent : lecture des emails
+      if(isEmailIntent(ft)){
+        document.getElementById('trU').textContent=ft;
+        gv('emails');
+        await readEmailsAloud();
+        loadEmails();
+        return;
+      }
       setOrb('thinking');document.getElementById('oLbl').textContent='GAIA réfléchit…';
       try{const rep=await claude(ft);document.getElementById('trG').textContent=cleanMarkdown(rep);setOrb('speaking');document.getElementById('oLbl').textContent='GAIA répond…';await speak(rep);setOrb('idle');document.getElementById('oLbl').textContent='Appuie pour parler';}
       catch(e){setOrb('idle');document.getElementById('oLbl').textContent='Erreur — réessaie';toast('Erreur: '+e.message,'err');}
@@ -749,7 +807,7 @@ let cLstn=false,cRec=null;
 function tChatVoice(){const btn=document.getElementById('cMic');if(cLstn){cRec?.stop();return;}cLstn=true;btn.classList.add('active');let ft='';cRec=mkRec((t,f)=>{document.getElementById('cInp').value=t;if(f)ft=t;},async()=>{cLstn=false;btn.classList.remove('active');if(ft){document.getElementById('cInp').value=ft;await sendChat();}});;if(cRec)cRec.start();}
 
 // ── VIEWS ─────────────────────────────────────────────
-const VIEWS=['home','messages','sport','finance','creative','reminders','autoreply'];
+const VIEWS=['home','messages','sport','finance','creative','reminders','autoreply','emails'];
 function gv(n){VIEWS.forEach(v=>{const e=document.getElementById('v'+v.charAt(0).toUpperCase()+v.slice(1));if(e)e.style.display=v===n?'block':'none';});document.getElementById('scrl').scrollTop=0;document.querySelectorAll('.tab-it').forEach(t=>t.classList.remove('active'));const tm={home:'ti-home',sport:'ti-sport',finance:'ti-finance',creative:'ti-creative'};if(tm[n])document.getElementById(tm[n])?.classList.add('active');}
 
 // ── SHEETS ─────────────────────────────────────────────
@@ -880,49 +938,187 @@ async function gmailArchive(id){
   return fetch('/api/gmail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'archive',id})}).then(r=>r.json());
 }
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);}
-async function loadGmail(){
-  const el=document.getElementById('gmailList');
+
+// Extrait juste le nom : "Tony <tony@x.com>" → "Tony"
+function cleanFrom(from){
+  if(!from)return '';
+  const m=String(from).match(/^([^<]+?)\s*<.+>$/);
+  if(m)return m[1].replace(/^["']|["']$/g,'').trim();
+  return String(from).split('@')[0];
+}
+// Date relative en français
+function formatEmailDate(s){
+  if(!s)return '';
+  const d=new Date(s);if(isNaN(d))return '';
+  const now=Date.now(),diff=Math.max(0,(now-d.getTime())/1000);
+  if(diff<60)return "à l'instant";
+  if(diff<3600)return `il y a ${Math.floor(diff/60)} min`;
+  if(diff<86400){const h=Math.floor(diff/3600);return `il y a ${h}h`;}
+  if(diff<172800)return 'Hier';
+  const days=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  if(diff<604800)return days[d.getDay()];
+  return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+}
+
+const EMAIL_CAT_ICON={client:'💼',fournisseur:'📦',spam:'🚫',admin:'📄',perso:'❤️',other:'📧'};
+const EMAIL_PRIO_LABEL={urgent:'Urgent',normal:'Normal',low:'Faible'};
+
+let emailsCache=[];
+
+async function loadEmails(){
+  const el=document.getElementById('emailsList');
+  const head=document.getElementById('emailsHeader');
+  head.innerHTML='';
   el.innerHTML='<div class="empty"><div class="empty-ico">⏳</div>GAIA trie ta boîte…</div>';
   try{
-    const list=await gmailList(10);
-    if(!list.length){el.innerHTML='<div class="empty"><div class="empty-ico">📭</div>Aucun email non lu</div>';return;}
-    const PRIO={urgent:'#ff3b30',normal:'#ff9500',low:'#34c759'};
-    const CAT={client:'💼',fournisseur:'📦',spam:'🚫',admin:'📄',perso:'❤️',other:'📧'};
-    const g=document.createElement('div');g.className='lg';
+    const list=await gmailList(15);
+    emailsCache=list;
+    if(!list.length){
+      el.innerHTML='<div class="empty"><div class="empty-ico">📭</div>Boîte vide. Belle discipline.</div>';
+      updateEmailBadge(0);
+      return;
+    }
+    const urg=list.filter(m=>m.priority==='urgent').length;
+    const cats={};list.forEach(m=>{cats[m.category]=(cats[m.category]||0)+1;});
+    const summary=Object.entries(cats).map(([k,v])=>`${EMAIL_CAT_ICON[k]||'📧'} ${v}`).join(' · ');
+    head.innerHTML=`<div style="font-size:13px;color:var(--muted);padding-bottom:10px">${list.length} non lus${urg?` · <span style="color:var(--red);font-weight:600">${urg} urgent${urg>1?'s':''}</span>`:''} · ${summary}</div>`;
+
+    el.innerHTML='';
     list.forEach(m=>{
-      const d=document.createElement('div');d.className='li';d.style.flexDirection='column';d.style.alignItems='stretch';
-      d.innerHTML=`
-        <div style="display:flex;align-items:center;gap:12px;width:100%">
-          <div class="li-i p">${CAT[m.category]||'📧'}</div>
-          <div class="lib">
-            <div class="lit">${escapeHTML(m.subject||'(sans objet)')}</div>
-            <div class="lis">${escapeHTML(m.from||'')}</div>
+      const card=document.createElement('div');
+      card.className='em-c';
+      card.dataset.id=m.id;
+      card.dataset.reply=m.suggestedReply||'';
+      const cat=m.category||'other';
+      const prio=m.priority||'normal';
+      card.innerHTML=`
+        <div class="em-h">
+          <div class="em-i ${cat}">${EMAIL_CAT_ICON[cat]||'📧'}</div>
+          <div class="em-meta">
+            <div class="em-from">${escapeHTML(cleanFrom(m.from)||'(inconnu)')}</div>
+            <div class="em-subject">${escapeHTML(m.subject||'(sans objet)')}</div>
+            <span class="em-prio ${prio}">${EMAIL_PRIO_LABEL[prio]||prio}</span>
           </div>
-          <div class="pdot" style="background:${PRIO[m.priority]||'#8e8e93'}"></div>
+          <div class="em-date">${escapeHTML(formatEmailDate(m.date))}</div>
         </div>
-        <div style="font-size:12px;color:var(--muted);margin:6px 0 0 46px">${escapeHTML(m.snippet||'')}</div>
-        ${m.suggestedReply?`<div style="margin:10px 0 0 46px;padding:10px;background:var(--inset);border-radius:10px;font-size:13px;line-height:1.5">${escapeHTML(m.suggestedReply).replace(/\n/g,'<br>')}</div>`:''}
-        <div style="display:flex;gap:8px;margin:10px 0 0 46px">
-          ${m.suggestedReply?`<button class="btn-act g" style="flex:1;margin:0;padding:8px;font-size:13px" onclick="doReply('${m.id}',this)">Envoyer la réponse</button>`:''}
-          <button class="btn-act" style="flex:1;margin:0;padding:8px;font-size:13px;background:var(--inset);color:var(--text)" onclick="doArchive('${m.id}',this)">Archiver</button>
+        ${m.snippet?`<div class="em-snippet">${escapeHTML(m.snippet)}</div>`:''}
+        ${m.suggestedReply?`<div class="em-reply">${escapeHTML(m.suggestedReply).replace(/\n/g,'<br>')}</div>`:''}
+        <div class="em-actions">
+          ${m.suggestedReply?`<button class="em-act reply" onclick="doReply('${m.id}',this)">Répondre avec GAIA</button>`:''}
+          <button class="em-act archive" onclick="doArchive('${m.id}',this)">Archiver</button>
         </div>`;
-      d.dataset.reply=m.suggestedReply||'';
-      g.appendChild(d);
+      el.appendChild(card);
     });
-    el.innerHTML='';el.appendChild(g);
-  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-ico">⚠️</div>${escapeHTML(e.message)}</div>`;}
+    updateEmailBadge(list.length);
+  }catch(e){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">⚠️</div>${escapeHTML(e.message)}</div>`;
+  }
 }
+
 async function doReply(id,btn){
-  const wrap=btn.closest('.li');const reply=wrap?.dataset.reply||'';
-  if(!reply)return toast('Pas de réponse suggérée','warn');
+  const card=btn.closest('.em-c');
+  const reply=card?.dataset.reply||'';
+  if(!reply){toast('Pas de réponse suggérée','warn');return;}
   btn.disabled=true;btn.textContent='Envoi…';
-  try{await gmailReply(id,reply);toast('Email envoyé');wrap.style.opacity='.4';}
-  catch(e){toast(e.message,'err');btn.disabled=false;btn.textContent='Envoyer la réponse';}
+  try{
+    await gmailReply(id,reply);
+    toast('Email envoyé ✓');
+    card.style.opacity='.45';
+    btn.textContent='Envoyé';
+  }catch(e){
+    toast('Erreur: '+e.message,'err');
+    btn.disabled=false;btn.textContent='Répondre avec GAIA';
+  }
 }
+
 async function doArchive(id,btn){
-  const wrap=btn.closest('.li');btn.disabled=true;
-  try{await gmailArchive(id);wrap.style.opacity='.3';toast('Archivé');}
-  catch(e){toast(e.message,'err');btn.disabled=false;}
+  const card=btn.closest('.em-c');
+  btn.disabled=true;btn.textContent='…';
+  try{
+    await gmailArchive(id);
+    card.style.opacity='.3';
+    btn.textContent='Archivé';
+    toast('Archivé');
+  }catch(e){
+    toast('Erreur: '+e.message,'err');
+    btn.disabled=false;btn.textContent='Archiver';
+  }
+}
+
+// Compte les non-lus (rapide, pas de classification Claude)
+async function updateEmailBadge(forceCount){
+  const modBadge=document.getElementById('emailModBadge');
+  const voiceBadge=document.getElementById('emailVoiceBadge');
+  let n=forceCount;
+  if(typeof n!=='number'){
+    try{
+      const r=await fetch('/api/gmail?action=count');
+      if(!r.ok)throw 0;
+      const d=await r.json();
+      n=d.unread||0;
+    }catch{return;}
+  }
+  if(n>0){
+    modBadge.style.display='inline-block';
+    modBadge.textContent=n>99?'99+':String(n);
+    if(voiceBadge){voiceBadge.style.display='inline-block';voiceBadge.textContent=`(${n})`;}
+  }else{
+    modBadge.style.display='none';
+    if(voiceBadge)voiceBadge.style.display='none';
+  }
+}
+
+// Lecture vocale du résumé de la boîte
+async function readEmailsAloud(){
+  const btn=document.getElementById('emailVoiceBtn');
+  if(btn)btn.disabled=true;
+  setOrb('thinking');document.getElementById('oLbl').textContent='GAIA lit ta boîte…';
+  try{
+    const list=await gmailList(8);
+    emailsCache=list;
+    document.getElementById('trCard').classList.add('show');
+    let summary;
+    if(!list.length){
+      summary="Aucun email non lu. Belle discipline.";
+    }else{
+      const urg=list.filter(m=>m.priority==='urgent');
+      const spam=list.filter(m=>m.category==='spam').length;
+      const utiles=list.length-spam;
+      summary=`Tu as ${utiles} email${utiles>1?'s':''} non lu${utiles>1?'s':''}. `;
+      if(urg.length){
+        summary+=`${urg.length} urgent${urg.length>1?'s':''}. `;
+        const u=urg[0];
+        summary+=`Le plus important vient de ${cleanFrom(u.from)}, sujet : ${u.subject}. `;
+      }else if(list.length){
+        const m=list[0];
+        summary+=`Le plus récent vient de ${cleanFrom(m.from)}, sujet : ${m.subject}. `;
+      }
+      if(spam)summary+=`Plus ${spam} spam${spam>1?'s':''} que je peux archiver. `;
+      summary+=`Veux-tu les détails ou que je réponde à un email ?`;
+    }
+    document.getElementById('trU').textContent='Lis mes emails';
+    document.getElementById('trG').textContent=summary;
+    setOrb('speaking');document.getElementById('oLbl').textContent='GAIA répond…';
+    await speak(summary);
+    setOrb('idle');document.getElementById('oLbl').textContent='Appuie pour parler';
+    updateEmailBadge();
+  }catch(e){
+    setOrb('idle');
+    document.getElementById('oLbl').textContent='Appuie pour parler';
+    toast('Erreur Gmail: '+e.message,'err');
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+
+// Détecte une intention "lire mes emails" dans la transcription voice
+function isEmailIntent(t){
+  if(!t)return false;
+  const s=t.toLowerCase();
+  return /\b(lis|lit|lire|montre|montres|résume|resume|trie|tri|vérifie|verifie|check)\b.{0,20}\b(emails?|mails?|boîte|boite|messages?|inbox)\b/.test(s)
+    || /\b(mes\s+emails?|ma\s+boîte\s+mail|ma\s+boite\s+mail)\b/.test(s)
+    || /\b(j'ai\s+(des\s+)?(emails?|mails?))\b/.test(s)
+    || /\bqui\s+m['' ]a\s+(écrit|envoyé|écris)\b/.test(s);
 }
 
 // Branche le bouton "Programmer le message" sur SMS + push planifié
