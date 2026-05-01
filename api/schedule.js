@@ -53,13 +53,18 @@ module.exports = async function handler(req, res) {
     if (req.method === 'POST') {
       const body =
         typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
-      const { subscription, payload, scheduledAt } = body;
+      const { subscription, payload, scheduledAt, twilio } = body;
 
-      if (!subscription?.endpoint) {
-        return res.status(400).json({ error: 'subscription.endpoint requis' });
+      // Au moins une des deux livraisons : push OU twilio
+      const hasPush = subscription?.endpoint && payload && typeof payload === 'object';
+      const hasTwilio = twilio && twilio.action && twilio.to && twilio.message;
+      if (!hasPush && !hasTwilio) {
+        return res.status(400).json({
+          error: 'Fournis au moins {subscription, payload} (push) ou {twilio: {action, to, message}}',
+        });
       }
-      if (!payload || typeof payload !== 'object') {
-        return res.status(400).json({ error: 'payload requis' });
+      if (twilio && !['sms', 'whatsapp'].includes(String(twilio.action).toLowerCase())) {
+        return res.status(400).json({ error: 'twilio.action doit être "sms" ou "whatsapp"' });
       }
       if (!scheduledAt) {
         return res.status(400).json({ error: 'scheduledAt requis' });
@@ -72,13 +77,19 @@ module.exports = async function handler(req, res) {
 
       const list = await readList();
       const id = `s_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      list.push({
-        id,
-        subscription,
-        payload,
-        due,
-        createdAt: Date.now(),
-      });
+      const entry = { id, due, createdAt: Date.now() };
+      if (hasPush) {
+        entry.subscription = subscription;
+        entry.payload = payload;
+      }
+      if (hasTwilio) {
+        entry.twilio = {
+          action: String(twilio.action).toLowerCase(),
+          to: twilio.to,
+          message: twilio.message,
+        };
+      }
+      list.push(entry);
 
       // Nettoyage : supprime les entrées de plus de 30 jours
       const cutoff = Date.now() - MAX_AGE_DAYS * 86400000;

@@ -46,37 +46,109 @@ async function writeScheduled(list) {
   return cmd('SET', SCHEDULED_KEY, JSON.stringify(list));
 }
 
+async function sendTwilioMessage(twilio) {
+  const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, TWILIO_WHATSAPP_NUMBER } = process.env;
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+    throw new Error('Twilio credentials missing');
+  }
+  const action = (twilio.action || 'sms').toLowerCase();
+  let dest = String(twilio.to).replace(/\s/g, '').replace(/^00/, '+');
+  if (/^0\d{9}$/.test(dest)) dest = '+33' + dest.substring(1);
+
+  let from, toFormatted;
+  if (action === 'whatsapp') {
+    const wa = TWILIO_WHATSAPP_NUMBER || '+14155238886';
+    from = `whatsapp:${wa.startsWith('+') ? wa : '+' + wa}`;
+    toFormatted = `whatsapp:${dest}`;
+  } else {
+    from = TWILIO_PHONE_NUMBER;
+    toFormatted = dest;
+  }
+
+  const auth = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64');
+  const r = await fetch(
+    `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        From: from,
+        To: toFormatted,
+        Body: String(twilio.message).substring(0, 1600),
+      }).toString(),
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const e = new Error(data.message || `Twilio ${r.status}`);
+    e.statusCode = r.status;
+    throw e;
+  }
+  return data;
+}
+
 async function processScheduled() {
   const list = await readScheduled();
   const now = Date.now();
   const due = list.filter((s) => s.due <= now);
   let remaining = list.filter((s) => s.due > now);
 
-  let sent = 0;
+  let pushSent = 0;
+  let twilioSent = 0;
   let failed = 0;
 
   for (const item of due) {
-    try {
-      const data = JSON.stringify({
-        title: item.payload.title || 'GAIA',
-        body: item.payload.body || '',
-        icon: item.payload.icon || '/icon-192.png',
-        badge: item.payload.badge || '/icon-192.png',
-        tag: item.payload.tag || item.id,
-        url: item.payload.url || '/',
-        vibrate: item.payload.vibrate || [200, 100, 200],
-      });
-      await webpush.sendNotification(item.subscription, data);
-      sent++;
-    } catch (err) {
-      failed++;
-      const status = err.statusCode || 0;
-      console.error('Push failed:', item.id, status, err.body || err.message);
-      // 4xx (sauf 408/429) = subscription invalide, on drop
-      // 5xx ou réseau = transient, on re-queue pour retry au prochain cron
-      if (status >= 500 || status === 408 || status === 429 || status === 0) {
-        remaining.push(item);
+    let pushOk = !item.subscription;
+    let twilioOk = !item.twilio;
+
+    // Push notification (si subscription présente)
+    if (item.subscription) {
+      try {
+        const data = JSON.stringify({
+          title: item.payload?.title || 'GAIA',
+          body: item.payload?.body || '',
+          icon: item.payload?.icon || '/icon-192.png',
+          badge: item.payload?.badge || '/icon-192.png',
+          tag: item.payload?.tag || item.id,
+          url: item.payload?.url || '/',
+          vibrate: item.payload?.vibrate || [200, 100, 200],
+        });
+        await webpush.sendNotification(item.subscription, data);
+        pushSent++;
+        pushOk = true;
+      } catch (err) {
+        const status = err.statusCode || 0;
+        console.error('Push failed:', item.id, status, err.body || err.message);
+        // 5xx/timeouts → re-queue ; 4xx → drop
+        if (status >= 500 || status === 408 || status === 429 || status === 0) {
+          pushOk = false;
+        } else {
+          pushOk = true; // dropped on purpose
+        }
       }
+    }
+
+    // Twilio SMS / WhatsApp (si twilio présent)
+    if (item.twilio) {
+      try {
+        await sendTwilioMessage(item.twilio);
+        twilioSent++;
+        twilioOk = true;
+      } catch (err) {
+        const status = err.statusCode || 0;
+        console.error('Twilio failed:', item.id, status, err.message);
+        // Erreurs définitives (4xx) : drop. Transient : retry.
+        if (status >= 500 || status === 0) twilioOk = false;
+        else twilioOk = true; // 4xx définitif
+      }
+    }
+
+    if (!pushOk || !twilioOk) {
+      remaining.push(item); // retry au prochain cron
+      failed++;
     }
   }
 
@@ -84,7 +156,13 @@ async function processScheduled() {
     await writeScheduled(remaining);
   }
 
-  return { due: due.length, sent, failed, remaining: remaining.length };
+  return {
+    due: due.length,
+    pushSent,
+    twilioSent,
+    failed,
+    remaining: remaining.length,
+  };
 }
 
 async function pingGmailIfEnabled(host) {

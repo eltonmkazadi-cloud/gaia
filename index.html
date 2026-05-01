@@ -636,6 +636,7 @@ body::after{
         <div class="home-greeting">
           <div class="home-greet-sm" id="greetSm">INITIALISATION...</div>
           <div class="home-greet-lg">ELTON 👋</div>
+          <div id="cityBox" style="display:none;font-size:11px;letter-spacing:1px;opacity:.6;margin-top:4px">📍 <span id="cityName"></span></div>
         </div>
         <div class="orb-stage" id="mainOrb" onclick="toggleVoice()">
           <div class="o-ring r1"></div><div class="o-ring r2"></div><div class="o-ring r3"></div>
@@ -688,14 +689,22 @@ body::after{
     <div class="view" id="vMessages">
       <div class="view-hdr"><div class="view-title">MESSAGES</div><div class="view-back" onclick="gv('home')">‹ HOME</div></div>
       <div class="form-sec">
-        <div class="field"><label class="field-lbl">// DESTINATAIRE</label><input type="text" id="mTo" placeholder="Nom ou numéro..."></div>
+        <div class="field">
+          <label class="field-lbl">// DESTINATAIRE</label>
+          <input type="text" id="mTo" placeholder="Numéro (+33...) ou nom...">
+          <button id="btnContacts" onclick="pickContact()" style="display:none;margin-top:6px;width:100%;padding:9px;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.25);border-radius:6px;color:var(--cyan);font-size:10px;letter-spacing:1px;cursor:pointer;font-weight:600">📇 CHOISIR DANS CONTACTS</button>
+        </div>
         <div class="field"><label class="field-lbl">// PLATEFORME</label><select id="mPlat"><option>WhatsApp</option><option>SMS</option><option>Instagram</option><option>Telegram</option><option>iMessage</option></select></div>
         <div class="field"><label class="field-lbl">// MESSAGE</label><textarea id="mTxt" placeholder="Ton message..."></textarea></div>
         <div class="field-row">
           <div class="field"><label class="field-lbl">// DATE</label><input type="date" id="mDate"></div>
           <div class="field"><label class="field-lbl">// HEURE</label><input type="time" id="mTime"></div>
         </div>
+        <button class="btn-cyber green" onclick="sendNowMsg()">📤 ENVOYER MAINTENANT</button>
+        <div style="height:8px"></div>
         <button class="btn-cyber" onclick="schedMsg()">⚡ PROGRAMMER</button>
+        <div style="height:8px"></div>
+        <button onclick="shareWhatsApp()" style="width:100%;padding:11px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.35);border-radius:8px;color:#25d366;font-size:10px;letter-spacing:1px;cursor:pointer;font-weight:600">📲 PARTAGER VERS WHATSAPP</button>
       </div>
       <div class="sec"><div class="sec-hdr">PROGRAMMÉS</div></div>
       <div style="padding:0 14px" id="msgList"></div>
@@ -990,6 +999,36 @@ function getLocation(){
 }
 window.gaiaCtx={};
 
+// ════════════════════════════════════════
+// PUSH NOTIFICATIONS (VAPID via /api/push)
+// ════════════════════════════════════════
+const PUSH_SUB_KEY='gaia_push_sub';
+let swReg=null,pushSub=null;
+try{const s=localStorage.getItem(PUSH_SUB_KEY);if(s)pushSub=JSON.parse(s);}catch(_){}
+function urlB64ToUint8(b64){const pad='='.repeat((4-b64.length%4)%4);const s=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');const raw=atob(s);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));}
+async function regSW(){if(!('serviceWorker' in navigator))return;try{swReg=await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;}catch(e){console.warn('SW reg failed',e);}}
+regSW();
+async function maybeRequestPush(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window))return;
+  if(!swReg)await regSW();if(!swReg)return;
+  // Si déjà abonné, pas besoin de redemander
+  const existing=await swReg.pushManager.getSubscription();
+  if(existing){pushSub=existing;localStorage.setItem(PUSH_SUB_KEY,JSON.stringify(existing));return;}
+  if(Notification.permission==='denied')return;
+  if(Notification.permission==='default'){
+    // Sur iOS Safari il faut un user gesture — mais après un délai post-unlock c'est généralement OK
+    const perm=await Notification.requestPermission().catch(()=>'default');
+    if(perm!=='granted')return;
+  }
+  try{
+    const k=await fetch('/api/push').then(r=>r.json()).catch(()=>({}));
+    if(!k.publicKey){console.warn('VAPID public key manquante');return;}
+    pushSub=await swReg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8(k.publicKey)});
+    localStorage.setItem(PUSH_SUB_KEY,JSON.stringify(pushSub));
+    toast('Notifications push activées');
+  }catch(e){console.warn('push subscribe failed',e);}
+}
+
 // Session 24h après auth réussie
 const SESSION_KEY='gaia_session_v1';
 const SESSION_MS=24*3600*1000;
@@ -1235,6 +1274,12 @@ function initApp(){
   loadWeather();
   updateEmailBadge();
   setInterval(updateEmailBadge,5*60*1000);
+  // Affiche le bouton Contacts si supporté (Chrome Android, pas Safari iOS)
+  if('contacts' in navigator&&'ContactsManager' in window){
+    const b=document.getElementById('btnContacts');if(b)b.style.display='block';
+  }
+  // Push notifications : demande la permission au démarrage (1x)
+  setTimeout(maybeRequestPush,3000);
 }
 function updClock(){const n=new Date();document.getElementById('nClock').textContent=p2(n.getHours())+':'+p2(n.getMinutes());}
 function setGreet(){const h=new Date().getHours();document.getElementById('greetSm').textContent=h<12?'BON MATIN':h<18?'BON APRÈS-MIDI':'BONSOIR';}
@@ -1473,44 +1518,128 @@ function isEmailIntent(t){
     || /\bqui\s+m['' ]a\s+(écrit|envoyé|écris)\b/.test(s);
 }
 
-async function schedMsg(){
+// Récupère les valeurs du formulaire Messages
+function _readMsgForm(){
   const to=document.getElementById('mTo').value.trim();
   const txt=document.getElementById('mTxt').value.trim();
   const date=document.getElementById('mDate').value;
   const time=document.getElementById('mTime').value;
   const pl=document.getElementById('mPlat').value;
-  if(!to||!txt||!date||!time){toast('Remplis tous les champs','warn');return;}
-  const when=new Date(`${date}T${time}`);
-  const isImmediate=when.getTime()-Date.now()<60000;
-  msgs.push({to,txt,date,time,pl});renderMsgs();
-  document.getElementById('mTo').value='';document.getElementById('mTxt').value='';
+  return {to,txt,date,time,pl};
+}
+function _normTel(num){
+  let d=String(num||'').replace(/[^0-9+]/g,'');
+  if(/^0\d{9}$/.test(d))d='+33'+d.substring(1);
+  return d;
+}
 
-  if(isImmediate){
+// Envoi immédiat selon plateforme
+async function sendNowMsg(){
+  const {to,txt,pl}=_readMsgForm();
+  if(!to||!txt){toast('Destinataire et message requis','warn');return;}
+  try{
     if(pl==='WhatsApp'){
-      const num=to.replace(/[^0-9+]/g,'');
-      window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`,'_blank');
-      toast('WhatsApp ouvert');
-    }else if(pl==='SMS'||pl==='iMessage'){
-      // sms: protocol → ouvre l'app SMS native iOS
+      // 1) Tente Twilio (envoi serveur). 2) Sinon ouvre wa.me deep link.
+      try{
+        const r=await fetch('/api/twilio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'whatsapp',to:_normTel(to),message:txt})});
+        const d=await r.json();
+        if(!r.ok)throw new Error(d.error||'Twilio HS');
+        toast('WhatsApp envoyé ✓');
+      }catch(e){
+        const num=_normTel(to).replace(/[^0-9+]/g,'');
+        window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`,'_blank');
+        toast('WhatsApp ouvert (fallback)');
+      }
+    }else if(pl==='SMS'){
+      // Twilio SMS direct
+      const r=await fetch('/api/twilio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sms',to:_normTel(to),message:txt})});
+      const d=await r.json();
+      if(!r.ok)throw new Error(d.error||'Twilio HS');
+      toast('SMS envoyé ✓');
+    }else if(pl==='iMessage'){
       window.location.href=`sms:${to}${navigator.userAgent.match(/iPhone|iPad/)?'&':'?'}body=${encodeURIComponent(txt)}`;
     }else{
-      // Web Share API natif (Instagram, Telegram, etc.)
+      // Instagram, Telegram → Web Share natif
       const shared=await shareNative({title:`Message à ${to}`,text:txt});
-      if(!shared){
-        try{await navigator.clipboard.writeText(txt);toast('Message copié — colle-le dans '+pl);}
-        catch(_){toast('Message programmé');}
-      }
+      if(!shared){await navigator.clipboard.writeText(txt);toast('Copié — colle dans '+pl);}
     }
-  }else{
-    toast('Message programmé');
+    document.getElementById('mTxt').value='';
+  }catch(e){toast('Erreur: '+e.message,'err');}
+}
+
+// Programme un message pour plus tard. Push notif + auto-envoi via cron.
+async function schedMsg(){
+  const {to,txt,date,time,pl}=_readMsgForm();
+  if(!to||!txt||!date||!time){toast('Remplis tous les champs','warn');return;}
+  const when=new Date(`${date}T${time}`);
+  if(isNaN(when)||when.getTime()<=Date.now()){toast('Date/heure dans le futur requise','warn');return;}
+  msgs.push({to,txt,date,time,pl});renderMsgs();
+  ['mTo','mTxt'].forEach(id=>document.getElementById(id).value='');
+
+  // Construit le payload schedule (push + twilio si applicable)
+  const sub=pushSub||(localStorage.getItem(PUSH_SUB_KEY)?JSON.parse(localStorage.getItem(PUSH_SUB_KEY)):null);
+  const payload=sub?{title:'GAIA — '+pl,body:`À ${to}: ${txt.substring(0,80)}`,url:'/'}:undefined;
+  const body={scheduledAt:when.toISOString()};
+  if(sub&&payload){body.subscription=sub;body.payload=payload;}
+  if(pl==='SMS')body.twilio={action:'sms',to:_normTel(to),message:txt};
+  else if(pl==='WhatsApp')body.twilio={action:'whatsapp',to:_normTel(to),message:txt};
+  // Pour les autres plateformes : juste push notif (Elton enverra à la main)
+
+  try{
+    const r=await fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){const e=await r.json();throw new Error(e.error||'erreur');}
+    toast(body.twilio?'Programmé · auto-envoi par GAIA':'Programmé · push notif au moment voulu');
+  }catch(e){
+    // Fallback local : setTimeout (marche tant que la page reste ouverte)
+    const ms=when.getTime()-Date.now();
+    setTimeout(()=>{
+      if(pl==='SMS')fetch('/api/twilio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sms',to:_normTel(to),message:txt})}).catch(()=>{});
+      else if(pl==='WhatsApp')fetch('/api/twilio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'whatsapp',to:_normTel(to),message:txt})}).catch(()=>{});
+    },Math.min(ms,2147483000));
+    toast('Programmé localement ('+e.message+')','warn');
   }
+}
+
+// Partage vers WhatsApp via wa.me (URL scheme universel)
+function shareWhatsApp(){
+  const {to,txt}=_readMsgForm();
+  if(!txt){toast('Écris un message','warn');return;}
+  const num=to?_normTel(to).replace(/[^0-9+]/g,''):'';
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`,'_blank');
+}
+
+// Web Contacts API (Chrome Android) — feature-detect au boot
+async function pickContact(){
+  if(!('contacts' in navigator)||!('ContactsManager' in window)){
+    toast('API Contacts non supportée sur ce navigateur','warn');
+    return;
+  }
+  try{
+    const props=['name','tel'];
+    const opts={multiple:false};
+    const c=await navigator.contacts.select(props,opts);
+    if(c&&c.length){
+      const ct=c[0];
+      const tel=ct.tel?.[0]||'';
+      const name=ct.name?.[0]||'';
+      document.getElementById('mTo').value=tel||name;
+      toast('Contact : '+(name||tel));
+    }
+  }catch(e){toast('Annulé','warn');}
 }
 function renderMsgs(){
   const el=document.getElementById('msgList');el.innerHTML='';
   if(!msgs.length){el.innerHTML='<div class="empty"><div class="empty-ico">📨</div>Aucun message programmé</div>';document.getElementById('sMsg').textContent=0;return;}
   msgs.forEach((m,i)=>{
     const d=document.createElement('div');d.className='card';
-    d.innerHTML=`<div class="card-row"><div class="card-ico">${PICO[m.pl]||'💬'}</div><div class="card-body"><div class="card-t">À ${m.to}</div><div class="card-s">${m.date} · ${m.time} · ${m.pl}</div></div><div class="card-del" onclick="delMsg(${i})">⊖</div></div>`;
+    const tel=_normTel(m.to);
+    const isPhone=/^\+\d{6,15}$/.test(tel);
+    d.innerHTML=`<div class="card-row"><div class="card-ico">${PICO[m.pl]||'💬'}</div><div class="card-body"><div class="card-t">À ${m.to}</div><div class="card-s">${m.date} · ${m.time} · ${m.pl}</div></div><div class="card-del" onclick="delMsg(${i})">⊖</div></div>
+      <div class="email-acts" style="margin-top:8px">
+        ${isPhone?`<button onclick="window.location.href='tel:${tel}'">📞 APPELER</button>`:''}
+        ${isPhone?`<button onclick="window.open('https://wa.me/${tel.replace(/\\+/,'')}?text=${encodeURIComponent(m.txt)}','_blank')">📲 WHATSAPP</button>`:''}
+        <button onclick="shareNative({title:'Message',text:'${m.txt.replace(/'/g,"\\'")}'})">📤 PARTAGER</button>
+      </div>`;
     el.appendChild(d);
   });
   document.getElementById('sMsg').textContent=msgs.length;
@@ -1742,6 +1871,7 @@ async function readEmailsAloud(){
 // ════════════════════════════════════════
 // CREATIVE
 // ════════════════════════════════════════
+let lastCreative='';
 async function genCreative(){
   const type=document.getElementById('crType').value;
   const prmt=document.getElementById('crPrmt').value.trim();
@@ -1749,11 +1879,18 @@ async function genCreative(){
   const out=document.getElementById('crOut');
   out.className='cre-out show';out.textContent='✨ GAIA génère...';
   try{
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:SYS+`\n\nGénère du contenu créatif de type : ${type}. Original, audacieux, adapté au profil d'Elton. Sans markdown, sans astérisques.`,messages:[{role:'user',content:prmt}]})});
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:buildSys()+`\n\nGénère du contenu créatif de type : ${type}. Original, audacieux, adapté au profil d'Elton. Sans markdown, sans astérisques.`,messages:[{role:'user',content:prmt}]})});
     const d=await r.json();
     const rep=d.content?.find(c=>c.type==='text')?.text||'Erreur';
-    out.textContent=rep.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1');
-    speak(rep.substring(0,200));
+    const cleaned=cleanMarkdown(rep);
+    lastCreative=cleaned;
+    out.innerHTML=`<div style="white-space:pre-wrap">${escapeHTML(cleaned)}</div>
+      <div class="email-acts" style="margin-top:12px">
+        <button onclick="shareNative({title:'GAIA — '+document.getElementById('crType').value,text:lastCreative})">📤 PARTAGER</button>
+        <button onclick="window.open('https://wa.me/?text='+encodeURIComponent(lastCreative),'_blank')">📲 WHATSAPP</button>
+        <button class="read" onclick="speak(lastCreative)">🔊</button>
+      </div>`;
+    speak(cleaned.substring(0,260));
   }catch(e){out.textContent='Erreur de connexion.';}
 }
 
@@ -1777,7 +1914,17 @@ function renderRems(){
   document.getElementById('sTsk').textContent=rems.filter(r=>!r.done).length;
   rems.forEach((r,i)=>{
     const d=document.createElement('div');d.className='rem-item';
-    d.innerHTML=`<div class="rem-chk${r.done?' done':''}" onclick="togRem(${i})">${r.done?'✓':''}</div><div class="rem-body"><div class="rem-t${r.done?' done':''}">${r.t}</div>${r.time?`<div class="rem-time">${r.time}</div>`:''}</div><div class="rem-prio" style="background:${r.p}"></div>`;
+    const safe=String(r.t).replace(/'/g,"\\'");
+    d.innerHTML=`<div class="rem-chk${r.done?' done':''}" onclick="togRem(${i})">${r.done?'✓':''}</div>
+      <div class="rem-body">
+        <div class="rem-t${r.done?' done':''}">${r.t}</div>
+        ${r.time?`<div class="rem-time">${r.time}</div>`:''}
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button onclick="shareNative({title:'Rappel GAIA',text:'${safe}'+(${r.time?'\\' \\u00e0 \\''+r.time+'\\'':'\\'\\''})})" style="font-size:9px;padding:4px 8px;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);border-radius:4px;color:var(--cyan);cursor:pointer">📤</button>
+          <button onclick="window.open('https://wa.me/?text='+encodeURIComponent('${safe}'),'_blank')" style="font-size:9px;padding:4px 8px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.3);border-radius:4px;color:#25d366;cursor:pointer">📲</button>
+        </div>
+      </div>
+      <div class="rem-prio" style="background:${r.p}"></div>`;
     el.appendChild(d);
   });
 }
@@ -1811,22 +1958,28 @@ function renderReps(){
 // ════════════════════════════════════════
 const WX_ICON={Clear:'☀️',Clouds:'☁️',Rain:'🌧️',Drizzle:'🌦️',Thunderstorm:'⛈️',Snow:'❄️',Mist:'🌫️',Fog:'🌫️',Haze:'🌫️'};
 async function loadWeather(){
-  const box=document.getElementById('wxBox');if(!box)return;
+  const box=document.getElementById('wxBox');
   try{
     const geo=await getLocation();
     const r=await fetch(`/api/weather?lat=${geo.lat}&lon=${geo.lon}`);
     const w=await r.json();
     if(!r.ok)throw new Error(w.error||'météo');
     window.gaiaCtx.weather=w;
-    box.innerHTML=`<div class="wx-card">
-      <div class="wx-emoji">${WX_ICON[w.main]||'🌤️'}</div>
-      <div class="wx-info">
-        <div class="wx-temp">${w.temp}°<span style="font-size:14px;opacity:.55">C</span></div>
-        <div class="wx-desc">${w.description} · ${w.city}</div>
-        <div class="wx-meta">RESSENTI ${w.feels}° · VENT ${w.wind} KM/H · HUM ${w.humidity}%</div>
-      </div>
-    </div>`;
-  }catch(e){box.innerHTML='';}
+    // Affiche la ville dans le greeting
+    const cityBox=document.getElementById('cityBox');
+    const cityName=document.getElementById('cityName');
+    if(cityBox&&cityName){cityName.textContent=w.city.toUpperCase();cityBox.style.display='block';}
+    if(box){
+      box.innerHTML=`<div class="wx-card">
+        <div class="wx-emoji">${WX_ICON[w.main]||'🌤️'}</div>
+        <div class="wx-info">
+          <div class="wx-temp">${w.temp}°<span style="font-size:14px;opacity:.55">C</span></div>
+          <div class="wx-desc">${w.description} · ${w.city}</div>
+          <div class="wx-meta">RESSENTI ${w.feels}° · VENT ${w.wind} KM/H · HUM ${w.humidity}%</div>
+        </div>
+      </div>`;
+    }
+  }catch(e){if(box)box.innerHTML='';}
 }
 
 // ════════════════════════════════════════
